@@ -93,7 +93,7 @@ toast.show({
 | `duration` | `number` | `5000` | Auto-dismiss time (ms) |
 | `maxToasts` | `number` | `3` | Max visible toasts |
 | `gap` | `number` | `14` | Gap between expanded toasts (px) |
-| `swipeDirections` | `('left'|'right'|'top'|'bottom')[]` | `['right', 'bottom']` | Swipe dismiss directions |
+| `swipeDirections` | `('left'\|'right'\|'top'\|'bottom')[]` | `['right', 'bottom']` | Swipe dismiss directions |
 
 ---
 

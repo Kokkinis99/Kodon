@@ -101,9 +101,9 @@
   transform: translateY(calc(var(--ngp-toast-offset, 0) * -1)) scale(1);
 }
 
-// Swipe dismiss effect mixin
+// Swipe dismiss effect mixin - applies blur/fade based on swipe progress
 @mixin swipe-dismiss-effect {
-  // Convert pixel values to unitless
+  // Convert pixel values to unitless for progress calculation
   --swipe-x: calc(var(--ngp-toast-swipe-amount-x, 0px) / 1px);
   --swipe-y: calc(var(--ngp-toast-swipe-amount-y, 0px) / 1px);
 

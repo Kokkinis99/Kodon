@@ -9,11 +9,28 @@ export type KodonToastPlacement =
   | 'bottom-center'
   | 'bottom-end';
 
-export type KodonSwipeDirection = 'top' | 'right' | 'bottom' | 'left';
+type SwipeDirection = 'top' | 'right' | 'bottom' | 'left';
+
+/**
+ * Get allowed swipe directions based on placement.
+ * Toasts can only be swiped toward screen edges.
+ */
+function getSwipeDirections(placement: KodonToastPlacement): SwipeDirection[] {
+  const map: Record<KodonToastPlacement, SwipeDirection[]> = {
+    'top-start': ['top', 'left'],
+    'top-center': ['top'],
+    'top-end': ['top', 'right'],
+    'bottom-start': ['bottom', 'left'],
+    'bottom-center': ['bottom'],
+    'bottom-end': ['bottom', 'right']
+  };
+  return map[placement];
+}
 
 export interface KodonToastConfig {
   /**
    * Where toasts appear on screen.
+   * Swipe directions are auto-calculated (toward screen edges only).
    * @default 'bottom-end'
    */
   placement?: KodonToastPlacement;
@@ -41,12 +58,6 @@ export interface KodonToastConfig {
    * @default 100
    */
   swipeThreshold?: number;
-
-  /**
-   * Allowed swipe directions for dismissal.
-   * @default ['right', 'bottom']
-   */
-  swipeDirections?: KodonSwipeDirection[];
 }
 
 /**
@@ -59,21 +70,22 @@ export interface KodonToastConfig {
  *     provideKodonToast({
  *       placement: 'bottom-end',
  *       duration: 5000,
- *       maxToasts: 3,
- *       swipeThreshold: 100
+ *       maxToasts: 3
  *     })
  *   ]
  * };
  */
 export function provideKodonToast(config: KodonToastConfig = {}): Provider[] {
+  const placement = config.placement ?? 'bottom-end';
+
   return [
     provideToastConfig({
-      placement: config.placement ?? 'bottom-end',
+      placement,
       duration: config.duration ?? 5000,
       maxToasts: config.maxToasts ?? 3,
       gap: config.gap ?? 14,
       swipeThreshold: config.swipeThreshold ?? 100,
-      swipeDirections: config.swipeDirections ?? ['right', 'bottom']
+      swipeDirections: getSwipeDirections(placement)
     })
   ];
 }

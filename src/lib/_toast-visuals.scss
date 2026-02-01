@@ -1,0 +1,128 @@
+/**
+ * Kodon Toast - Visual styling (colors, icons, typography, variants)
+ * All colors customizable via CSS custom properties.
+ */
+
+// Default color palette (can be overridden)
+:host {
+  // Error variant
+  --kodon-toast-error-bg: hsl(0 84% 60% / 0.15);
+  --kodon-toast-error-border: hsl(0 84% 60%);
+  --kodon-toast-error-text: hsl(0 84% 80%);
+  --kodon-toast-error-icon: hsl(0 84% 60%);
+
+  // Success variant
+  --kodon-toast-success-bg: hsl(142 76% 36% / 0.15);
+  --kodon-toast-success-border: hsl(142 76% 46%);
+  --kodon-toast-success-text: hsl(142 76% 66%);
+  --kodon-toast-success-icon: hsl(142 76% 46%);
+
+  // Warning variant
+  --kodon-toast-warning-bg: hsl(38 92% 50% / 0.15);
+  --kodon-toast-warning-border: hsl(38 92% 50%);
+  --kodon-toast-warning-text: hsl(38 92% 70%);
+  --kodon-toast-warning-icon: hsl(38 92% 50%);
+
+  // Info variant
+  --kodon-toast-info-bg: hsl(217 91% 60% / 0.15);
+  --kodon-toast-info-border: hsl(217 91% 60%);
+  --kodon-toast-info-text: hsl(217 91% 80%);
+  --kodon-toast-info-icon: hsl(217 91% 60%);
+
+  // Close button
+  --kodon-toast-close-hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+.kodon-toast-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.kodon-toast-message {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  user-select: none;
+  pointer-events: none;
+}
+
+.kodon-toast-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  transition:
+    opacity 150ms ease,
+    background-color 150ms ease;
+
+  &:hover {
+    opacity: 1;
+    background-color: var(--kodon-toast-close-hover-bg);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Variant: Error
+:host[data-variant='error'] .kodon-toast-content {
+  background-color: var(--kodon-toast-error-bg);
+  border: 1px solid var(--kodon-toast-error-border);
+  color: var(--kodon-toast-error-text);
+}
+
+:host[data-variant='error'] .kodon-toast-icon {
+  color: var(--kodon-toast-error-icon);
+}
+
+// Variant: Success
+:host[data-variant='success'] .kodon-toast-content {
+  background-color: var(--kodon-toast-success-bg);
+  border: 1px solid var(--kodon-toast-success-border);
+  color: var(--kodon-toast-success-text);
+}
+
+:host[data-variant='success'] .kodon-toast-icon {
+  color: var(--kodon-toast-success-icon);
+}
+
+// Variant: Warning
+:host[data-variant='warning'] .kodon-toast-content {
+  background-color: var(--kodon-toast-warning-bg);
+  border: 1px solid var(--kodon-toast-warning-border);
+  color: var(--kodon-toast-warning-text);
+}
+
+:host[data-variant='warning'] .kodon-toast-icon {
+  color: var(--kodon-toast-warning-icon);
+}
+
+// Variant: Info
+:host[data-variant='info'] .kodon-toast-content {
+  background-color: var(--kodon-toast-info-bg);
+  border: 1px solid var(--kodon-toast-info-border);
+  color: var(--kodon-toast-info-text);
+}
+
+:host[data-variant='info'] .kodon-toast-icon {
+  color: var(--kodon-toast-info-icon);
+}

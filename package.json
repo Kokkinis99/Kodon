@@ -1,0 +1,40 @@
+{
+  "name": "Kodon",
+  "version": "0.0.1",
+  "description": "Sonner-style toast notifications for Angular, built on ng-primitives",
+  "keywords": [
+    "angular",
+    "toast",
+    "notifications",
+    "sonner",
+    "ng-primitives"
+  ],
+  "author": "George Kokkiinis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kokkinis99/kodon.git"
+  },
+  "peerDependencies": {
+    "@angular/common": "^19.0.0",
+    "@angular/core": "^19.0.0",
+    "ng-primitives": "^0.34.0"
+  },
+  "dependencies": {
+    "tslib": "^2.8.0"
+  },
+  "devDependencies": {
+    "@angular/compiler": "^19.0.0",
+    "@angular/compiler-cli": "^19.0.0",
+    "@angular/common": "^19.0.0",
+    "@angular/core": "^19.0.0",
+    "ng-primitives": "^0.34.0",
+    "ng-packagr": "^19.0.0",
+    "typescript": "~5.6.0"
+  },
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json",
+    "watch": "ng-packagr -p ng-package.json --watch"
+  },
+  "sideEffects": false
+}

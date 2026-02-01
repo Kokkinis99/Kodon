@@ -100,8 +100,12 @@ toast.show({
 | `duration` | `number` | `5000` | Auto-dismiss time (ms) |
 | `maxToasts` | `number` | `3` | Max visible toasts |
 | `gap` | `number` | `14` | Gap between expanded toasts (px) |
+| `swipeThreshold` | `number` | `100` | Distance (px) to swipe before dismissal |
+| `swipeDirections` | `KodonSwipeDirection[]` | `['right', 'bottom']` | Allowed swipe directions |
 
 **Placement options:** `'top-start'`, `'top-center'`, `'top-end'`, `'bottom-start'`, `'bottom-center'`, `'bottom-end'`
+
+**Swipe directions:** `'top'`, `'right'`, `'bottom'`, `'left'`
 
 ---
 

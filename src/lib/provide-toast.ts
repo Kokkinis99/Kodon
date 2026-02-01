@@ -9,6 +9,8 @@ export type KodonToastPlacement =
   | 'bottom-center'
   | 'bottom-end';
 
+export type KodonSwipeDirection = 'top' | 'right' | 'bottom' | 'left';
+
 export interface KodonToastConfig {
   /**
    * Where toasts appear on screen.
@@ -33,6 +35,18 @@ export interface KodonToastConfig {
    * @default 14
    */
   gap?: number;
+
+  /**
+   * Distance in pixels required to dismiss via swipe.
+   * @default 100
+   */
+  swipeThreshold?: number;
+
+  /**
+   * Allowed swipe directions for dismissal.
+   * @default ['right', 'bottom']
+   */
+  swipeDirections?: KodonSwipeDirection[];
 }
 
 /**
@@ -45,7 +59,8 @@ export interface KodonToastConfig {
  *     provideKodonToast({
  *       placement: 'bottom-end',
  *       duration: 5000,
- *       maxToasts: 3
+ *       maxToasts: 3,
+ *       swipeThreshold: 100
  *     })
  *   ]
  * };
@@ -56,7 +71,9 @@ export function provideKodonToast(config: KodonToastConfig = {}): Provider[] {
       placement: config.placement ?? 'bottom-end',
       duration: config.duration ?? 5000,
       maxToasts: config.maxToasts ?? 3,
-      gap: config.gap ?? 14
+      gap: config.gap ?? 14,
+      swipeThreshold: config.swipeThreshold ?? 100,
+      swipeDirections: config.swipeDirections ?? ['right', 'bottom']
     })
   ];
 }

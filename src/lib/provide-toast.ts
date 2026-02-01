@@ -1,37 +1,43 @@
-import { Provider } from '@angular/core';
-import { provideToastConfig, NgpToastPlacement, NgpToastSwipeDirection } from 'ng-primitives/toast';
+import { InjectionToken, Provider } from '@angular/core';
+
+export type KodonToastPlacement =
+  | 'top-start'
+  | 'top-center'
+  | 'top-end'
+  | 'bottom-start'
+  | 'bottom-center'
+  | 'bottom-end';
 
 export interface KodonToastConfig {
   /**
    * Where toasts appear on screen.
    * @default 'bottom-end'
    */
-  placement?: NgpToastPlacement;
+  placement: KodonToastPlacement;
 
   /**
-   * Auto-dismiss duration in milliseconds.
-   * @default 5000
+   * Auto-dismiss duration in milliseconds. Set to 0 to disable.
+   * @default 4000
    */
-  duration?: number;
+  duration: number;
 
   /**
-   * Maximum number of visible toasts.
-   * @default 3
+   * Gap between toasts in pixels.
+   * @default 12
    */
-  maxToasts?: number;
-
-  /**
-   * Gap between expanded toasts in pixels.
-   * @default 14
-   */
-  gap?: number;
-
-  /**
-   * Directions toasts can be swiped to dismiss.
-   * @default ['right', 'bottom']
-   */
-  swipeDirections?: NgpToastSwipeDirection[];
+  gap: number;
 }
+
+const defaultConfig: KodonToastConfig = {
+  placement: 'bottom-end',
+  duration: 4000,
+  gap: 12
+};
+
+export const KODON_TOAST_CONFIG = new InjectionToken<KodonToastConfig>(
+  'KodonToastConfig',
+  { providedIn: 'root', factory: () => defaultConfig }
+);
 
 /**
  * Provide Kodon toast configuration for your application.
@@ -42,20 +48,18 @@ export interface KodonToastConfig {
  *   providers: [
  *     provideKodonToast({
  *       placement: 'bottom-end',
- *       duration: 5000,
- *       maxToasts: 3
+ *       duration: 5000
  *     })
  *   ]
  * };
  */
-export function provideKodonToast(config: KodonToastConfig = {}): Provider[] {
+export function provideKodonToast(
+  config: Partial<KodonToastConfig> = {}
+): Provider[] {
   return [
-    provideToastConfig({
-      placement: config.placement ?? 'bottom-end',
-      duration: config.duration ?? 5000,
-      maxToasts: config.maxToasts ?? 3,
-      gap: config.gap ?? 14,
-      swipeDirections: config.swipeDirections ?? ['right', 'bottom']
-    })
+    {
+      provide: KODON_TOAST_CONFIG,
+      useValue: { ...defaultConfig, ...config }
+    }
   ];
 }

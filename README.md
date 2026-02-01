@@ -1,26 +1,25 @@
 # Kodon
 
-**Sonner-style toast notifications for Angular**, built on [ng-primitives](https://angularprimitives.com/).
+**Sonner-style toast notifications for Angular.**
 
-Smooth, interruptible animations that feel right. No keyframes—just CSS transitions that can be interrupted and retargeted mid-flight.
+Smooth, interruptible animations using CSS `@starting-style`. No dependencies beyond Angular.
 
 ---
 
 ## Features
 
-- 🎯 **Sonner-inspired animations** — Smooth stacking, hover expansion, swipe-to-dismiss
-- 🔄 **Interruptible transitions** — CSS transitions that retarget smoothly when state changes
-- 📱 **Swipe to dismiss** — With reversible fade & blur effects
+- 🎯 **Sonner-inspired animations** — Smooth enter/exit transitions
+- ✨ **CSS @starting-style** — Modern enter animations, no JavaScript timing hacks
 - 🎨 **Fully customizable** — Colors, timing, and layout via CSS custom properties
 - ♿ **Accessible** — Respects `prefers-reduced-motion`
-- 📦 **Lightweight** — Just styles on top of ng-primitives
+- 📦 **Zero dependencies** — Just Angular
 
 ---
 
 ## Installation
 
 ```bash
-npm install kodon ng-primitives
+npm install kodon
 ```
 
 ---
@@ -38,14 +37,21 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideKodonToast({
       placement: 'bottom-end',
-      duration: 5000,
-      maxToasts: 3
+      duration: 4000
     })
   ]
 };
 ```
 
-### 2. Inject and use the toast service
+### 2. Import the styles
+
+```scss
+// styles.scss
+@use 'kodon/toast-visuals';
+@use 'kodon/toast-container';
+```
+
+### 3. Use the toast service
 
 ```typescript
 import { Component, inject } from '@angular/core';
@@ -83,17 +89,21 @@ toast.show({
   variant: 'info',
   duration: 3000
 });
+
+// Dismiss
+toast.dismiss(toastId);
+toast.dismissAll();
 ```
 
 ### `provideKodonToast()` Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `placement` | `NgpToastPlacement` | `'bottom-end'` | Screen position |
-| `duration` | `number` | `5000` | Auto-dismiss time (ms) |
-| `maxToasts` | `number` | `3` | Max visible toasts |
-| `gap` | `number` | `14` | Gap between expanded toasts (px) |
-| `swipeDirections` | `('left'\|'right'\|'top'\|'bottom')[]` | `['right', 'bottom']` | Swipe dismiss directions |
+| `placement` | `KodonToastPlacement` | `'bottom-end'` | Screen position |
+| `duration` | `number` | `4000` | Auto-dismiss time (ms), 0 to disable |
+| `gap` | `number` | `12` | Gap between toasts (px) |
+
+**Placement options:** `'top-start'`, `'top-center'`, `'top-end'`, `'bottom-start'`, `'bottom-center'`, `'bottom-end'`
 
 ---
 
@@ -101,7 +111,7 @@ toast.show({
 
 ### CSS Custom Properties
 
-Override in your global styles or a parent element:
+Override in your global styles:
 
 ```css
 :root {
@@ -110,7 +120,6 @@ Override in your global styles or a parent element:
   --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1);
   
   /* Layout */
-  --kodon-toast-peek: 11px;
   --kodon-toast-padding: 14px 16px;
   --kodon-toast-border-radius: 10px;
   --kodon-toast-max-width: 400px;
@@ -155,30 +164,12 @@ toast.show({
 
 ---
 
-## How It Works
-
-### Why Transitions Over Keyframes?
-
-> "When adding multiple toasts, older ones jump into their new position instead of smoothly transitioning. That's one downside of keyframes—you can't smoothly change the end position while the animation is running. CSS transitions, on the other hand, can be **interrupted and retargeted**."
-> — [Emil Kowalski](https://emilkowal.ski/ui/building-a-toast-component)
-
-### Animation Techniques Used
-
-1. **Child transforms** — Transforms on inner element prevent hover flicker
-2. **Pseudo-element hover areas** — Invisible elements bridge gaps between toasts
-3. **will-change** — Prevents GPU/CPU swap jitter
-4. **Unit stripping in CSS** — `calc(var(--px-value) / 1px)` for unitless math
-5. **Dead zones** — Swipe effects don't trigger immediately for intentional feel
-
----
-
 ## Credits
 
-- Animation approach inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski
-- Built on [ng-primitives](https://angularprimitives.com/) for headless toast behavior
+Animation approach inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski.
 
 ---
 
 ## License
 
-MIT © Covve
+MIT © George Kokkiinis

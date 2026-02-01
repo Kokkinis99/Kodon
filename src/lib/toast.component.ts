@@ -1,19 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
+  input,
+  output,
   TemplateRef
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { NgpToast, NgpToastManager, injectToastContext } from 'ng-primitives/toast';
 
 export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning';
-
-export interface KodonToastContext {
-  message: string;
-  variant: KodonToastVariant;
-  icon?: TemplateRef<unknown>;
-}
 
 /**
  * Toast component following Sonner-style animations.
@@ -24,17 +18,22 @@ export interface KodonToastContext {
   selector: 'kodon-toast',
   standalone: true,
   imports: [NgTemplateOutlet],
-  hostDirectives: [NgpToast],
   host: {
-    '[attr.data-variant]': 'context.variant'
+    '[attr.data-variant]': 'variant()'
   },
   template: `
     <div class="kodon-toast-content">
-      @if (context.icon) {
-        <ng-container *ngTemplateOutlet="context.icon" />
+      @if (icon()) {
+        <ng-container *ngTemplateOutlet="icon()!" />
       } @else {
-        <svg class="kodon-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          @switch (context.variant) {
+        <svg
+          class="kodon-toast-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          @switch (variant()) {
             @case ('error') {
               <circle cx="12" cy="12" r="10"/>
               <line x1="15" y1="9" x2="9" y2="15"/>
@@ -57,11 +56,11 @@ export interface KodonToastContext {
           }
         </svg>
       }
-      <span class="kodon-toast-message">{{ context.message }}</span>
+      <span class="kodon-toast-message">{{ message() }}</span>
       <button
         type="button"
         class="kodon-toast-close"
-        (click)="dismiss()"
+        (click)="onDismiss()"
         aria-label="Dismiss toast"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -75,12 +74,14 @@ export interface KodonToastContext {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class KodonToastComponent {
-  private readonly _toastManager = inject(NgpToastManager);
-  private readonly _ngpToast = inject(NgpToast);
+  readonly id = input.required<number>();
+  readonly message = input.required<string>();
+  readonly variant = input<KodonToastVariant>('info');
+  readonly icon = input<TemplateRef<unknown>>();
 
-  public readonly context = injectToastContext<KodonToastContext>();
+  readonly dismissed = output<void>();
 
-  public dismiss(): void {
-    this._toastManager.dismiss(this._ngpToast);
+  onDismiss(): void {
+    this.dismissed.emit();
   }
 }

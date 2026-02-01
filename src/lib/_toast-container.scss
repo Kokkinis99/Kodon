@@ -1,0 +1,65 @@
+/**
+ * Kodon Toast Container Styles
+ * Import this in your global styles to position the toast container.
+ *
+ * @example
+ * // styles.scss
+ * @use 'kodon/toast-container';
+ */
+
+.kodon-toast-container {
+  --kodon-gap: 12px;
+  --kodon-padding: 16px;
+
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--kodon-gap);
+  padding: var(--kodon-padding);
+  pointer-events: none;
+  max-height: 100vh;
+  overflow: hidden;
+
+  // Bottom-end (default)
+  &[data-position='bottom-end'] {
+    bottom: 0;
+    right: 0;
+    align-items: flex-end;
+  }
+
+  &[data-position='bottom-start'] {
+    bottom: 0;
+    left: 0;
+    align-items: flex-start;
+  }
+
+  &[data-position='bottom-center'] {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+  }
+
+  &[data-position='top-end'] {
+    top: 0;
+    right: 0;
+    align-items: flex-end;
+    flex-direction: column-reverse;
+  }
+
+  &[data-position='top-start'] {
+    top: 0;
+    left: 0;
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+
+  &[data-position='top-center'] {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+    flex-direction: column-reverse;
+  }
+}

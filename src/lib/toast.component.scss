@@ -1,42 +1,23 @@
 /**
  * Kodon Toast - Sonner-style animations for Angular.
- * Key principle: Use CSS transitions (not keyframes) for smooth interruption.
- * Transforms are applied to .kodon-toast-content (child) to avoid hover flicker.
+ * Uses CSS @starting-style for enter animations, no JavaScript needed.
  * @see https://emilkowal.ski/ui/building-a-toast-component
  */
 
 @use './toast-visuals';
 
 :host {
-  // Customizable via CSS custom properties
-  --kodon-toast-peek: 11px;
   --kodon-toast-padding: 14px 16px;
   --kodon-toast-border-radius: 10px;
   --kodon-toast-max-width: 400px;
   --kodon-toast-duration: 350ms;
-  --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1); // ease-out-quart
+  --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1);
 
-  // Position within the container - let ng-primitives container handle fixed positioning
-  // This keeps toasts within the container's bounds for proper hover behavior
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  z-index: var(--ngp-toast-z-index, 1);
-
-  // Transition for when toasts beyond maxToasts become visible
-  transition: opacity var(--kodon-toast-duration) var(--kodon-toast-easing);
-
-  // Visibility for toasts beyond maxToasts
-  &[data-visible='false'] {
-    opacity: 0;
-    pointer-events: none;
-  }
+  display: block;
+  pointer-events: auto;
 }
 
-// Animate transforms on the child to avoid hover flicker
-// The parent (:host) stays in place, only the content moves
 .kodon-toast-content {
-  position: relative; // For pseudo-element positioning
   display: flex;
   align-items: center;
   gap: 12px;
@@ -49,136 +30,66 @@
     0 4px 12px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.05);
 
-  // Prevent GPU/CPU swap that causes 1px jitter at transition start/end
-  will-change: transform, opacity;
-
-  // CSS transitions allow smooth interruption and retargeting
+  // Smooth transitions
   transition:
     transform var(--kodon-toast-duration) var(--kodon-toast-easing),
-    opacity var(--kodon-toast-duration) var(--kodon-toast-easing),
-    filter var(--kodon-toast-duration) var(--kodon-toast-easing);
+    opacity var(--kodon-toast-duration) var(--kodon-toast-easing);
+
+  // Enter animation
+  opacity: 1;
+  transform: translateX(0);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
-  }
-}
-
-// Extend hover area to cover the gap between toasts when expanded
-// This invisible pseudo-element catches hover events in the gap
-// preventing collapse when moving between toasts
-:host[data-front='false'][data-expanded='true'] .kodon-toast-content::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  // Extend downward into the gap (toward the toast below)
-  top: 100%;
-  height: var(--ngp-toast-gap, 14px);
-}
-
-// Front toast - default visible state
-:host[data-front='true'] .kodon-toast-content {
-  opacity: 1;
-  transform: translateY(0);
-
-  // Entry animation via @starting-style
-  @starting-style {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-}
-
-// Stacking: Non-front toasts when collapsed
-// Use --kodon-toast-peek (11px) per toast instead of full height offset
-// Scale down by 0.05 per toast behind for depth effect
-:host[data-front='false'][data-expanded='false'] {
-  --stack-index: var(--ngp-toast-index, 1);
-  --peek-offset: calc((var(--stack-index) - 1) * var(--kodon-toast-peek));
-  --scale-factor: calc(1 - ((var(--stack-index) - 1) * 0.05));
-
-  .kodon-toast-content {
-    opacity: 1;
-    transform:
-      translateY(calc(var(--peek-offset) * -1))
-      scale(var(--scale-factor));
-
     @starting-style {
-      opacity: 0;
-      transform: translateY(100%);
+      opacity: 1;
+      transform: none;
     }
   }
 }
 
-// When expanded (hover), show full stack
-// Use --ngp-toast-offset directly - it already includes gaps from config
-:host[data-front='false'][data-expanded='true'] .kodon-toast-content {
-  opacity: 1;
-  transform: translateY(calc(var(--ngp-toast-offset, 0) * -1)) scale(1);
+// Exit animation
+:host([data-removing='true']) .kodon-toast-content {
+  opacity: 0;
+  transform: translateX(100%);
+}
 
+// Position variants for different placements
+:host-context([data-position^='top']) .kodon-toast-content {
+  @starting-style {
+    transform: translateY(-100%);
+  }
+}
+
+:host-context([data-position^='top'][data-removing='true']) .kodon-toast-content,
+:host([data-removing='true']):host-context([data-position^='top']) .kodon-toast-content {
+  transform: translateY(-100%);
+}
+
+:host-context([data-position$='start']) .kodon-toast-content {
+  @starting-style {
+    transform: translateX(-100%);
+  }
+}
+
+:host-context([data-position$='start'][data-removing='true']) .kodon-toast-content,
+:host([data-removing='true']):host-context([data-position$='start']) .kodon-toast-content {
+  transform: translateX(-100%);
+}
+
+:host-context([data-position$='center']) .kodon-toast-content {
   @starting-style {
     opacity: 0;
-    transform: translateY(100%);
+    transform: scale(0.9);
   }
 }
 
-// Swipe dismiss effect mixin - fade + blur based on drag distance
-// Fully reversible - drag back and it interpolates back to original state
-// Convert pixel values to unitless by dividing by 1px
-@mixin swipe-dismiss-effect {
-  // Convert pixel swipe amounts to unitless by dividing by 1px
-  // e.g., 50px / 1px = 50 (unitless)
-  --swipe-x: calc(var(--ngp-toast-swipe-amount-x, 0px) / 1px);
-  --swipe-y: calc(var(--ngp-toast-swipe-amount-y, 0px) / 1px);
-  
-  // Normalize to progress (0 = at rest, 1 = at ~90% visually out)
-  // Use larger threshold (200px) so effect is gradual across the swipe
-  --swipe-threshold: 200px;
-  --swipe-progress-raw: calc(max(var(--swipe-x), var(--swipe-y)) / var(--swipe-threshold));
-  
-  // Small dead zone at start (10%), then ramp to full effect
-  --swipe-progress: clamp(0, calc((var(--swipe-progress-raw) - 0.1) / 0.9), 1);
-
-  // Fade from 1 → ~0.3 as swipe progresses
-  opacity: calc(1 - var(--swipe-progress) * 0.7);
-  // Blur from 0 → 4px as swipe progresses
-  filter: blur(calc(var(--swipe-progress) * 4px));
-}
-
-// Swipe gesture support - front toast
-:host[data-swiping='true'][data-front='true'] .kodon-toast-content {
-  transition: none;
-  transform:
-    translateX(var(--ngp-toast-swipe-amount-x, 0))
-    translateY(var(--ngp-toast-swipe-amount-y, 0));
-  @include swipe-dismiss-effect;
-}
-
-// Swipe gesture support - non-front toasts (collapsed)
-// Combine swipe with stack position
-:host[data-swiping='true'][data-front='false'][data-expanded='false'] {
-  --stack-index: var(--ngp-toast-index, 1);
-  --peek-offset: calc((var(--stack-index) - 1) * var(--kodon-toast-peek));
-  --scale-factor: calc(1 - ((var(--stack-index) - 1) * 0.05));
-
-  .kodon-toast-content {
-    transition: none;
-    transform:
-      translateX(var(--ngp-toast-swipe-amount-x, 0))
-      translateY(calc(
-        var(--ngp-toast-swipe-amount-y, 0) - var(--peek-offset)
-      ))
-      scale(var(--scale-factor));
-    @include swipe-dismiss-effect;
-  }
-}
-
-// Swipe gesture support - non-front toasts (expanded)
-:host[data-swiping='true'][data-front='false'][data-expanded='true'] .kodon-toast-content {
-  transition: none;
-  transform:
-    translateX(var(--ngp-toast-swipe-amount-x, 0))
-    translateY(calc(
-      var(--ngp-toast-swipe-amount-y, 0) - var(--ngp-toast-offset, 0)
-    ));
-  @include swipe-dismiss-effect;
+:host([data-removing='true']):host-context([data-position$='center']) .kodon-toast-content {
+  opacity: 0;
+  transform: scale(0.9);
 }

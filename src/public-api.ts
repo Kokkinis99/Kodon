@@ -1,12 +1,17 @@
 /*
- * Public API Surface of @aspect-of/kodon
+ * Public API Surface of kodon
  */
 
 // Component
-export { KodonToastComponent, KodonToastContext, KodonToastVariant } from './lib/toast.component';
+export { KodonToastComponent, KodonToastVariant } from './lib/toast.component';
 
 // Service
-export { KodonToast, KodonToastOptions } from './lib/toast.service';
+export { KodonToast, KodonToastOptions, ToastState } from './lib/toast.service';
 
 // Provider
-export { provideKodonToast, KodonToastConfig } from './lib/provide-toast';
+export {
+  provideKodonToast,
+  KodonToastConfig,
+  KodonToastPlacement,
+  KODON_TOAST_CONFIG
+} from './lib/provide-toast';

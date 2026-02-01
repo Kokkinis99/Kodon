@@ -1,25 +1,26 @@
 # Kodon
 
-**Sonner-style toast notifications for Angular.**
+**Sonner-style toast notifications for Angular**, built on [ng-primitives](https://ng-primitives.mintlify.app/).
 
-Smooth, interruptible animations using CSS `@starting-style`. No dependencies beyond Angular.
+Smooth, interruptible animations with stacking, hover expansion, and swipe-to-dismiss.
 
 ---
 
 ## Features
 
-- 🎯 **Sonner-inspired animations** — Smooth enter/exit transitions
-- ✨ **CSS @starting-style** — Modern enter animations, no JavaScript timing hacks
-- 🎨 **Fully customizable** — Colors, timing, and layout via CSS custom properties
+- 🎯 **Sonner-inspired animations** — Smooth stacking with peek effect
+- 🔄 **Interruptible transitions** — CSS transitions that retarget smoothly
+- 👆 **Swipe to dismiss** — With reversible fade & blur effects
+- 📚 **Stackable** — Hover to expand and see all toasts
+- 🎨 **Fully customizable** — Colors, timing, and layout via CSS variables
 - ♿ **Accessible** — Respects `prefers-reduced-motion`
-- 📦 **Zero dependencies** — Just Angular
 
 ---
 
 ## Installation
 
 ```bash
-npm install kodon
+npm install kodon ng-primitives
 ```
 
 ---
@@ -37,7 +38,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideKodonToast({
       placement: 'bottom-end',
-      duration: 4000
+      duration: 5000,
+      maxToasts: 3
     })
   ]
 };
@@ -48,7 +50,6 @@ export const appConfig: ApplicationConfig = {
 ```scss
 // styles.scss
 @use 'kodon/toast-visuals';
-@use 'kodon/toast-container';
 ```
 
 ### 3. Use the toast service
@@ -89,10 +90,6 @@ toast.show({
   variant: 'info',
   duration: 3000
 });
-
-// Dismiss
-toast.dismiss(toastId);
-toast.dismissAll();
 ```
 
 ### `provideKodonToast()` Options
@@ -100,8 +97,9 @@ toast.dismissAll();
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `placement` | `KodonToastPlacement` | `'bottom-end'` | Screen position |
-| `duration` | `number` | `4000` | Auto-dismiss time (ms), 0 to disable |
-| `gap` | `number` | `12` | Gap between toasts (px) |
+| `duration` | `number` | `5000` | Auto-dismiss time (ms) |
+| `maxToasts` | `number` | `3` | Max visible toasts |
+| `gap` | `number` | `14` | Gap between expanded toasts (px) |
 
 **Placement options:** `'top-start'`, `'top-center'`, `'top-end'`, `'bottom-start'`, `'bottom-center'`, `'bottom-end'`
 
@@ -120,6 +118,7 @@ Override in your global styles:
   --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1);
   
   /* Layout */
+  --kodon-toast-peek: 11px;
   --kodon-toast-padding: 14px 16px;
   --kodon-toast-border-radius: 10px;
   --kodon-toast-max-width: 400px;
@@ -164,9 +163,26 @@ toast.show({
 
 ---
 
+## How It Works
+
+### Why Transitions Over Keyframes?
+
+> "When adding multiple toasts, older ones jump into their new position instead of smoothly transitioning. CSS transitions can be **interrupted and retargeted**, unlike keyframes."
+> — [Emil Kowalski](https://emilkowal.ski/ui/building-a-toast-component)
+
+### Animation Techniques
+
+- **Child transforms** — Applied to inner element to prevent hover flicker
+- **Pseudo-element hover areas** — Invisible elements bridge gaps between toasts
+- **will-change** — Prevents GPU/CPU swap jitter
+- **Absolute value swipe progress** — Fade/blur works in all swipe directions
+
+---
+
 ## Credits
 
-Animation approach inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski.
+- Animation approach inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski
+- Built on [ng-primitives](https://ng-primitives.mintlify.app/) for headless toast behavior
 
 ---
 

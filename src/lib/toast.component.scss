@@ -103,11 +103,19 @@
 
 // Swipe dismiss effect mixin
 @mixin swipe-dismiss-effect {
+  // Convert pixel values to unitless
   --swipe-x: calc(var(--ngp-toast-swipe-amount-x, 0px) / 1px);
   --swipe-y: calc(var(--ngp-toast-swipe-amount-y, 0px) / 1px);
-  --swipe-progress-raw: calc(max(var(--swipe-x), var(--swipe-y)) / 200);
+
+  // Get absolute values (works for negative swipes: left/up)
+  --swipe-x-abs: max(var(--swipe-x), calc(var(--swipe-x) * -1));
+  --swipe-y-abs: max(var(--swipe-y), calc(var(--swipe-y) * -1));
+
+  // Normalize to progress (0 = at rest, 1 = fully dismissed)
+  --swipe-progress-raw: calc(max(var(--swipe-x-abs), var(--swipe-y-abs)) / 200);
   --swipe-progress: clamp(0, calc((var(--swipe-progress-raw) - 0.1) / 0.9), 1);
 
+  // Fade from 1 → 0.3 and blur from 0 → 4px as progress increases
   opacity: calc(1 - var(--swipe-progress) * 0.7);
   filter: blur(calc(var(--swipe-progress) * 4px));
 }

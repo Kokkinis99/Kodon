@@ -1,10 +1,22 @@
 import { Component, inject } from '@angular/core';
 import { KodonToast } from '../../../src/lib/toast.service';
 import { KodonToastVariant } from '../../../src/lib/toast.component';
+import {
+  LucideAngularModule,
+  CircleCheck,
+  CircleX,
+  TriangleAlert,
+  Info,
+  Layers,
+  Sparkles,
+  Hand,
+  Library
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-root',
   standalone: true,
+  imports: [LucideAngularModule],
   template: `
     <main class="container">
       <header class="hero">
@@ -20,36 +32,43 @@ import { KodonToastVariant } from '../../../src/lib/toast.component';
 
       <section class="demo-section">
         <div class="button-grid">
-          @for (variant of variants; track variant.type) {
-            <button
-              [class]="'toast-btn ' + variant.type"
-              (click)="showToast(variant.type)"
-            >
-              <span class="btn-icon">{{ variant.icon }}</span>
-              <span class="btn-label">{{ variant.label }}</span>
-            </button>
-          }
+          <button class="toast-btn success" (click)="showToast('success')">
+            <lucide-icon [img]="CircleCheck" [size]="18" [strokeWidth]="2.5" />
+            <span class="btn-label">Success</span>
+          </button>
+          <button class="toast-btn error" (click)="showToast('error')">
+            <lucide-icon [img]="CircleX" [size]="18" [strokeWidth]="2.5" />
+            <span class="btn-label">Error</span>
+          </button>
+          <button class="toast-btn warning" (click)="showToast('warning')">
+            <lucide-icon [img]="TriangleAlert" [size]="18" [strokeWidth]="2.5" />
+            <span class="btn-label">Warning</span>
+          </button>
+          <button class="toast-btn info" (click)="showToast('info')">
+            <lucide-icon [img]="Info" [size]="18" [strokeWidth]="2.5" />
+            <span class="btn-label">Info</span>
+          </button>
         </div>
 
         <button class="stack-btn" (click)="showStack()">
-          <span>🎭</span>
+          <lucide-icon [img]="Layers" [size]="18" [strokeWidth]="2" />
           Stack Multiple
         </button>
       </section>
 
       <section class="features">
         <div class="feature">
-          <span class="feature-icon">✨</span>
+          <lucide-icon class="feature-icon" [img]="Sparkles" [size]="28" [strokeWidth]="1.5" />
           <h3>Sonner-style Animations</h3>
           <p>Smooth CSS transitions that can be interrupted</p>
         </div>
         <div class="feature">
-          <span class="feature-icon">👆</span>
+          <lucide-icon class="feature-icon" [img]="Hand" [size]="28" [strokeWidth]="1.5" />
           <h3>Swipe to Dismiss</h3>
           <p>Natural gesture support on touch devices</p>
         </div>
         <div class="feature">
-          <span class="feature-icon">📚</span>
+          <lucide-icon class="feature-icon" [img]="Library" [size]="28" [strokeWidth]="1.5" />
           <h3>Stackable</h3>
           <p>Hover to expand and see all toasts</p>
         </div>
@@ -57,7 +76,7 @@ import { KodonToastVariant } from '../../../src/lib/toast.component';
 
       <section class="install">
         <h2>Installation</h2>
-        <pre class="code-block"><code>npm install kodon ng-primitives</code></pre>
+        <pre class="code-block"><code>npm install kodon</code></pre>
       </section>
 
       <footer class="footer">
@@ -162,8 +181,8 @@ import { KodonToastVariant } from '../../../src/lib/toast.component';
       transform: translateY(0);
     }
 
-    .btn-icon {
-      font-size: 18px;
+    .toast-btn lucide-icon {
+      flex-shrink: 0;
     }
 
     .toast-btn.success {
@@ -226,9 +245,9 @@ import { KodonToastVariant } from '../../../src/lib/toast.component';
     }
 
     .feature-icon {
-      font-size: 28px;
       display: block;
       margin-bottom: 12px;
+      color: var(--accent);
     }
 
     .feature h3 {
@@ -295,12 +314,15 @@ import { KodonToastVariant } from '../../../src/lib/toast.component';
 export class AppComponent {
   private readonly toast = inject(KodonToast);
 
-  readonly variants = [
-    { type: 'success' as const, label: 'Success', icon: '✓' },
-    { type: 'error' as const, label: 'Error', icon: '✕' },
-    { type: 'warning' as const, label: 'Warning', icon: '⚠' },
-    { type: 'info' as const, label: 'Info', icon: 'ℹ' }
-  ];
+  // Lucide icons
+  protected readonly CircleCheck = CircleCheck;
+  protected readonly CircleX = CircleX;
+  protected readonly TriangleAlert = TriangleAlert;
+  protected readonly Info = Info;
+  protected readonly Layers = Layers;
+  protected readonly Sparkles = Sparkles;
+  protected readonly Hand = Hand;
+  protected readonly Library = Library;
 
   private readonly messages: Record<KodonToastVariant, string[]> = {
     success: [

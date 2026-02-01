@@ -12,7 +12,7 @@
   --kodon-toast-peek: 11px;
   --kodon-toast-padding: 14px 16px;
   --kodon-toast-border-radius: 10px;
-  --kodon-toast-max-width: 400px;
+  --kodon-toast-width: 355px;
   --kodon-toast-duration: 350ms;
   --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1); // ease-out-quart
 
@@ -40,8 +40,7 @@
   gap: 12px;
   padding: var(--kodon-toast-padding);
   border-radius: var(--kodon-toast-border-radius);
-  max-width: var(--kodon-toast-max-width);
-  width: max-content;
+  width: var(--kodon-toast-width, 355px);
   backdrop-filter: blur(8px);
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.3),
@@ -69,20 +68,20 @@
   height: var(--ngp-toast-gap, 14px);
 }
 
-// Initial state (before mount)
-:host[data-mounted='false'] .kodon-toast-content {
-  opacity: 0;
-  transform: translateY(100%);
-}
-
-// Mounted state - front toast
-:host[data-mounted='true'][data-front='true'] .kodon-toast-content {
+// Front toast - default state
+:host[data-front='true'] .kodon-toast-content {
   opacity: 1;
   transform: translateY(0);
+
+  // Entry animation via @starting-style
+  @starting-style {
+    opacity: 0;
+    transform: translateY(100%);
+  }
 }
 
 // Stacking: Non-front toasts when collapsed
-:host[data-mounted='true'][data-front='false'][data-expanded='false'] {
+:host[data-front='false'][data-expanded='false'] {
   --stack-index: var(--ngp-toast-index, 1);
   --peek-offset: calc((var(--stack-index) - 1) * var(--kodon-toast-peek));
   --scale-factor: calc(1 - ((var(--stack-index) - 1) * 0.05));
@@ -92,13 +91,23 @@
     transform:
       translateY(calc(var(--peek-offset) * -1))
       scale(var(--scale-factor));
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(100%);
+    }
   }
 }
 
 // When expanded (hover), show full stack
-:host[data-mounted='true'][data-front='false'][data-expanded='true'] .kodon-toast-content {
+:host[data-front='false'][data-expanded='true'] .kodon-toast-content {
   opacity: 1;
   transform: translateY(calc(var(--ngp-toast-offset, 0) * -1)) scale(1);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(100%);
+  }
 }
 
 // Swipe dismiss effect mixin - applies blur/fade based on swipe progress

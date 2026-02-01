@@ -20,7 +20,7 @@ Smooth, interruptible animations with stacking, hover expansion, and swipe-to-di
 ## Installation
 
 ```bash
-npm install kodon ng-primitives
+npm install kodon
 ```
 
 ---

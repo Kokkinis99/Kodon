@@ -8,13 +8,13 @@ import { KodonToastVariant } from '../../../src/lib/toast.component';
   template: `
     <main class="container">
       <header class="hero">
-        <div class="badge">Angular 19 • Standalone</div>
+        <div class="badge">Angular 19 • ng-primitives</div>
         <h1 class="title">
           <span class="gradient">Kodon</span>
         </h1>
         <p class="subtitle">
           Sonner-style toast notifications for Angular.<br>
-          Smooth animations. Simple API. Zero dependencies.
+          Smooth animations. Swipe to dismiss. Stackable.
         </p>
       </header>
 
@@ -40,24 +40,24 @@ import { KodonToastVariant } from '../../../src/lib/toast.component';
       <section class="features">
         <div class="feature">
           <span class="feature-icon">✨</span>
-          <h3>CSS &#64;starting-style</h3>
-          <p>Modern enter animations with no JavaScript</p>
+          <h3>Sonner-style Animations</h3>
+          <p>Smooth CSS transitions that can be interrupted</p>
         </div>
         <div class="feature">
-          <span class="feature-icon">🪶</span>
-          <h3>Lightweight</h3>
-          <p>No external dependencies required</p>
+          <span class="feature-icon">👆</span>
+          <h3>Swipe to Dismiss</h3>
+          <p>Natural gesture support on touch devices</p>
         </div>
         <div class="feature">
-          <span class="feature-icon">🎨</span>
-          <h3>Customizable</h3>
-          <p>CSS variables for easy theming</p>
+          <span class="feature-icon">📚</span>
+          <h3>Stackable</h3>
+          <p>Hover to expand and see all toasts</p>
         </div>
       </section>
 
       <section class="install">
         <h2>Installation</h2>
-        <pre class="code-block"><code>npm install kodon</code></pre>
+        <pre class="code-block"><code>npm install kodon ng-primitives</code></pre>
       </section>
 
       <footer class="footer">

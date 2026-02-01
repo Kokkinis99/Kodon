@@ -1,30 +1,40 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  input,
-  output,
+  inject,
+  signal,
+  OnInit,
   TemplateRef
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { NgpToast, NgpToastManager, injectToastContext } from 'ng-primitives/toast';
 
 export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning';
 
+export interface KodonToastContext {
+  message: string;
+  variant: KodonToastVariant;
+  icon?: TemplateRef<unknown>;
+}
+
 /**
  * Toast component following Sonner-style animations.
- * Uses CSS transitions with @starting-style for smooth enter animations.
+ * Uses CSS transitions instead of keyframes for smooth interruption/retargeting.
  * @see https://emilkowal.ski/ui/building-a-toast-component
  */
 @Component({
   selector: 'kodon-toast',
   standalone: true,
   imports: [NgTemplateOutlet],
+  hostDirectives: [NgpToast],
   host: {
-    '[attr.data-variant]': 'variant()'
+    '[attr.data-variant]': 'context.variant',
+    '[attr.data-mounted]': 'mounted()'
   },
   template: `
     <div class="kodon-toast-content">
-      @if (icon()) {
-        <ng-container *ngTemplateOutlet="icon()!" />
+      @if (context.icon) {
+        <ng-container *ngTemplateOutlet="context.icon" />
       } @else {
         <svg
           class="kodon-toast-icon"
@@ -33,7 +43,7 @@ export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning';
           stroke="currentColor"
           stroke-width="2"
         >
-          @switch (variant()) {
+          @switch (context.variant) {
             @case ('error') {
               <circle cx="12" cy="12" r="10"/>
               <line x1="15" y1="9" x2="9" y2="15"/>
@@ -56,11 +66,11 @@ export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning';
           }
         </svg>
       }
-      <span class="kodon-toast-message">{{ message() }}</span>
+      <span class="kodon-toast-message">{{ context.message }}</span>
       <button
         type="button"
         class="kodon-toast-close"
-        (click)="onDismiss()"
+        (click)="dismiss()"
         aria-label="Dismiss toast"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -73,15 +83,26 @@ export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning';
   styleUrl: './toast.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class KodonToastComponent {
-  readonly id = input.required<number>();
-  readonly message = input.required<string>();
-  readonly variant = input<KodonToastVariant>('info');
-  readonly icon = input<TemplateRef<unknown>>();
+export class KodonToastComponent implements OnInit {
+  private readonly _toastManager = inject(NgpToastManager);
+  private readonly _ngpToast = inject(NgpToast);
 
-  readonly dismissed = output<void>();
+  public readonly context = injectToastContext<KodonToastContext>();
 
-  onDismiss(): void {
-    this.dismissed.emit();
+  /**
+   * Mounted state triggers entrance animation via CSS transitions.
+   * This approach allows smooth interruption unlike keyframes.
+   */
+  public readonly mounted = signal(false);
+
+  ngOnInit(): void {
+    // Trigger entrance animation after initial render
+    requestAnimationFrame(() => {
+      this.mounted.set(true);
+    });
+  }
+
+  public dismiss(): void {
+    this._toastManager.dismiss(this._ngpToast);
   }
 }

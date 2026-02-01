@@ -3,15 +3,10 @@
  */
 
 // Component
-export { KodonToastComponent, KodonToastVariant } from './lib/toast.component';
+export { KodonToastComponent, KodonToastVariant, KodonToastContext } from './lib/toast.component';
 
 // Service
-export { KodonToast, KodonToastOptions, ToastState } from './lib/toast.service';
+export { KodonToast, KodonToastOptions } from './lib/toast.service';
 
 // Provider
-export {
-  provideKodonToast,
-  KodonToastConfig,
-  KodonToastPlacement,
-  KODON_TOAST_CONFIG
-} from './lib/provide-toast';
+export { provideKodonToast, KodonToastConfig } from './lib/provide-toast';

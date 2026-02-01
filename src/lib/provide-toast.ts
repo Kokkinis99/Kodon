@@ -1,4 +1,5 @@
-import { InjectionToken, Provider } from '@angular/core';
+import { Provider } from '@angular/core';
+import { provideToastConfig } from 'ng-primitives/toast';
 
 export type KodonToastPlacement =
   | 'top-start'
@@ -13,31 +14,26 @@ export interface KodonToastConfig {
    * Where toasts appear on screen.
    * @default 'bottom-end'
    */
-  placement: KodonToastPlacement;
+  placement?: KodonToastPlacement;
 
   /**
-   * Auto-dismiss duration in milliseconds. Set to 0 to disable.
-   * @default 4000
+   * Auto-dismiss duration in milliseconds.
+   * @default 5000
    */
-  duration: number;
+  duration?: number;
 
   /**
-   * Gap between toasts in pixels.
-   * @default 12
+   * Maximum number of visible toasts.
+   * @default 3
    */
-  gap: number;
+  maxToasts?: number;
+
+  /**
+   * Gap between expanded toasts in pixels.
+   * @default 14
+   */
+  gap?: number;
 }
-
-const defaultConfig: KodonToastConfig = {
-  placement: 'bottom-end',
-  duration: 4000,
-  gap: 12
-};
-
-export const KODON_TOAST_CONFIG = new InjectionToken<KodonToastConfig>(
-  'KodonToastConfig',
-  { providedIn: 'root', factory: () => defaultConfig }
-);
 
 /**
  * Provide Kodon toast configuration for your application.
@@ -48,18 +44,19 @@ export const KODON_TOAST_CONFIG = new InjectionToken<KodonToastConfig>(
  *   providers: [
  *     provideKodonToast({
  *       placement: 'bottom-end',
- *       duration: 5000
+ *       duration: 5000,
+ *       maxToasts: 3
  *     })
  *   ]
  * };
  */
-export function provideKodonToast(
-  config: Partial<KodonToastConfig> = {}
-): Provider[] {
+export function provideKodonToast(config: KodonToastConfig = {}): Provider[] {
   return [
-    {
-      provide: KODON_TOAST_CONFIG,
-      useValue: { ...defaultConfig, ...config }
-    }
+    provideToastConfig({
+      placement: config.placement ?? 'bottom-end',
+      duration: config.duration ?? 5000,
+      maxToasts: config.maxToasts ?? 3,
+      gap: config.gap ?? 14
+    })
   ];
 }

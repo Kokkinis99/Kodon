@@ -1,23 +1,40 @@
 /**
  * Kodon Toast - Sonner-style animations for Angular.
- * Uses CSS @starting-style for enter animations, no JavaScript needed.
+ * Key principle: Use CSS transitions (not keyframes) for smooth interruption.
+ * Transforms are applied to .kodon-toast-content (child) to avoid hover flicker.
  * @see https://emilkowal.ski/ui/building-a-toast-component
  */
 
 @use './toast-visuals';
 
 :host {
+  // Customizable via CSS custom properties
+  --kodon-toast-peek: 11px;
   --kodon-toast-padding: 14px 16px;
   --kodon-toast-border-radius: 10px;
   --kodon-toast-max-width: 400px;
   --kodon-toast-duration: 350ms;
-  --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1); // ease-out-quart
 
-  display: block;
-  pointer-events: auto;
+  // Position within the container - let ng-primitives container handle fixed positioning
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: var(--ngp-toast-z-index, 1);
+
+  // Transition for when toasts beyond maxToasts become visible
+  transition: opacity var(--kodon-toast-duration) var(--kodon-toast-easing);
+
+  // Visibility for toasts beyond maxToasts
+  &[data-visible='false'] {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
+// Animate transforms on the child to avoid hover flicker
 .kodon-toast-content {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -30,66 +47,101 @@
     0 4px 12px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.05);
 
-  // Smooth transitions
+  will-change: transform, opacity;
+
   transition:
     transform var(--kodon-toast-duration) var(--kodon-toast-easing),
-    opacity var(--kodon-toast-duration) var(--kodon-toast-easing);
-
-  // Enter animation
-  opacity: 1;
-  transform: translateX(0);
-
-  @starting-style {
-    opacity: 0;
-    transform: translateX(100%);
-  }
+    opacity var(--kodon-toast-duration) var(--kodon-toast-easing),
+    filter var(--kodon-toast-duration) var(--kodon-toast-easing);
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
-    @starting-style {
-      opacity: 1;
-      transform: none;
-    }
   }
 }
 
-// Exit animation
-:host([data-removing='true']) .kodon-toast-content {
+// Extend hover area to cover the gap between toasts when expanded
+:host[data-front='false'][data-expanded='true'] .kodon-toast-content::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: var(--ngp-toast-gap, 14px);
+}
+
+// Initial state (before mount)
+:host[data-mounted='false'] .kodon-toast-content {
   opacity: 0;
-  transform: translateX(100%);
+  transform: translateY(100%);
 }
 
-// Position variants for different placements
-:host-context([data-position^='top']) .kodon-toast-content {
-  @starting-style {
-    transform: translateY(-100%);
+// Mounted state - front toast
+:host[data-mounted='true'][data-front='true'] .kodon-toast-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+// Stacking: Non-front toasts when collapsed
+:host[data-mounted='true'][data-front='false'][data-expanded='false'] {
+  --stack-index: var(--ngp-toast-index, 1);
+  --peek-offset: calc((var(--stack-index) - 1) * var(--kodon-toast-peek));
+  --scale-factor: calc(1 - ((var(--stack-index) - 1) * 0.05));
+
+  .kodon-toast-content {
+    opacity: 1;
+    transform:
+      translateY(calc(var(--peek-offset) * -1))
+      scale(var(--scale-factor));
   }
 }
 
-:host-context([data-position^='top'][data-removing='true']) .kodon-toast-content,
-:host([data-removing='true']):host-context([data-position^='top']) .kodon-toast-content {
-  transform: translateY(-100%);
+// When expanded (hover), show full stack
+:host[data-mounted='true'][data-front='false'][data-expanded='true'] .kodon-toast-content {
+  opacity: 1;
+  transform: translateY(calc(var(--ngp-toast-offset, 0) * -1)) scale(1);
 }
 
-:host-context([data-position$='start']) .kodon-toast-content {
-  @starting-style {
-    transform: translateX(-100%);
+// Swipe dismiss effect mixin
+@mixin swipe-dismiss-effect {
+  --swipe-x: calc(var(--ngp-toast-swipe-amount-x, 0px) / 1px);
+  --swipe-y: calc(var(--ngp-toast-swipe-amount-y, 0px) / 1px);
+  --swipe-progress-raw: calc(max(var(--swipe-x), var(--swipe-y)) / 200);
+  --swipe-progress: clamp(0, calc((var(--swipe-progress-raw) - 0.1) / 0.9), 1);
+
+  opacity: calc(1 - var(--swipe-progress) * 0.7);
+  filter: blur(calc(var(--swipe-progress) * 4px));
+}
+
+// Swipe gesture support - front toast
+:host[data-swiping='true'][data-front='true'] .kodon-toast-content {
+  transition: none;
+  transform:
+    translateX(var(--ngp-toast-swipe-amount-x, 0))
+    translateY(var(--ngp-toast-swipe-amount-y, 0));
+  @include swipe-dismiss-effect;
+}
+
+// Swipe gesture support - non-front toasts (collapsed)
+:host[data-swiping='true'][data-front='false'][data-expanded='false'] {
+  --stack-index: var(--ngp-toast-index, 1);
+  --peek-offset: calc((var(--stack-index) - 1) * var(--kodon-toast-peek));
+  --scale-factor: calc(1 - ((var(--stack-index) - 1) * 0.05));
+
+  .kodon-toast-content {
+    transition: none;
+    transform:
+      translateX(var(--ngp-toast-swipe-amount-x, 0))
+      translateY(calc(var(--ngp-toast-swipe-amount-y, 0) - var(--peek-offset)))
+      scale(var(--scale-factor));
+    @include swipe-dismiss-effect;
   }
 }
 
-:host-context([data-position$='start'][data-removing='true']) .kodon-toast-content,
-:host([data-removing='true']):host-context([data-position$='start']) .kodon-toast-content {
-  transform: translateX(-100%);
-}
-
-:host-context([data-position$='center']) .kodon-toast-content {
-  @starting-style {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-}
-
-:host([data-removing='true']):host-context([data-position$='center']) .kodon-toast-content {
-  opacity: 0;
-  transform: scale(0.9);
+// Swipe gesture support - non-front toasts (expanded)
+:host[data-swiping='true'][data-front='false'][data-expanded='true'] .kodon-toast-content {
+  transition: none;
+  transform:
+    translateX(var(--ngp-toast-swipe-amount-x, 0))
+    translateY(calc(var(--ngp-toast-swipe-amount-y, 0) - var(--ngp-toast-offset, 0)));
+  @include swipe-dismiss-effect;
 }

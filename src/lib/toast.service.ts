@@ -33,9 +33,16 @@ export interface ToastState {
  * toast.success('Changes saved!');
  * toast.error('Something went wrong');
  */
+const DEFAULT_CONFIG: KodonToastConfig = {
+  placement: 'bottom-end',
+  duration: 4000,
+  gap: 12
+};
+
 @Injectable({ providedIn: 'root' })
 export class KodonToast {
-  private readonly _config = inject(KODON_TOAST_CONFIG);
+  private readonly _config = inject(KODON_TOAST_CONFIG, { optional: true })
+    ?? DEFAULT_CONFIG;
   private readonly _appRef = inject(ApplicationRef);
   private readonly _injector = inject(EnvironmentInjector);
   private readonly _document = inject(DOCUMENT);

@@ -46,7 +46,7 @@
     "build": "ng-packagr -p ng-package.json",
     "watch": "ng-packagr -p ng-package.json --watch",
     "demo": "ng serve demo",
-    "build:demo": "ng build demo --base-href /"
+    "build:demo": "rm -rf docs && ng build demo --base-href / && mv docs/browser/* docs/ && rmdir docs/browser && rm -f docs/prerendered-routes.json && cp demo/CNAME docs/"
   },
   "sideEffects": false
 }

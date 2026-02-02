@@ -88,7 +88,7 @@ import {
           GitHub
         </a>
         <span class="divider">•</span>
-        <span>Made by George Kokkiinis</span>
+        <span>Made by George Kokkinis</span>
       </footer>
     </main>
   `,

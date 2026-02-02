@@ -191,4 +191,4 @@ toast.show({
 
 ## License
 
-MIT © George Kokkiinis
+MIT © George Kokkinis

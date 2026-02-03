@@ -185,7 +185,7 @@ toast.show({
 ## Credits
 
 - Animation approach inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski
-- Built on [ng-primitives](https://ng-primitives.mintlify.app/) for headless toast behavior
+- Built on [ng-primitives](https://angularprimitives.com/) for headless toast behavior
 
 ---
 

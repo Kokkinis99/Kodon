@@ -1,4 +1,4 @@
-# Kodon
+# Kōdon
 
 **Sonner-style toast notifications for Angular**, built on [ng-primitives](https://ng-primitives.mintlify.app/).
 

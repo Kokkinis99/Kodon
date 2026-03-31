@@ -6,31 +6,31 @@
 // Default color palette (can be overridden)
 :host {
   // Error variant
-  --kodon-toast-error-bg: hsl(0 84% 60% / 0.15);
-  --kodon-toast-error-border: hsl(0 84% 60%);
-  --kodon-toast-error-text: hsl(0 84% 80%);
-  --kodon-toast-error-icon: hsl(0 84% 60%);
+  --kodon-toast-error-bg: hsl(0 84% 97%);
+  --kodon-toast-error-border: hsl(0 84% 88%);
+  --kodon-toast-error-text: hsl(0 84% 28%);
+  --kodon-toast-error-icon: hsl(0 84% 50%);
 
   // Success variant
-  --kodon-toast-success-bg: hsl(142 76% 36% / 0.15);
-  --kodon-toast-success-border: hsl(142 76% 46%);
-  --kodon-toast-success-text: hsl(142 76% 66%);
-  --kodon-toast-success-icon: hsl(142 76% 46%);
+  --kodon-toast-success-bg: hsl(142 76% 96%);
+  --kodon-toast-success-border: hsl(142 76% 82%);
+  --kodon-toast-success-text: hsl(142 76% 18%);
+  --kodon-toast-success-icon: hsl(142 76% 36%);
 
   // Warning variant
-  --kodon-toast-warning-bg: hsl(38 92% 50% / 0.15);
-  --kodon-toast-warning-border: hsl(38 92% 50%);
-  --kodon-toast-warning-text: hsl(38 92% 70%);
-  --kodon-toast-warning-icon: hsl(38 92% 50%);
+  --kodon-toast-warning-bg: hsl(38 92% 96%);
+  --kodon-toast-warning-border: hsl(38 92% 78%);
+  --kodon-toast-warning-text: hsl(38 92% 22%);
+  --kodon-toast-warning-icon: hsl(38 92% 42%);
 
   // Info variant
-  --kodon-toast-info-bg: hsl(217 91% 60% / 0.15);
-  --kodon-toast-info-border: hsl(217 91% 60%);
-  --kodon-toast-info-text: hsl(217 91% 80%);
-  --kodon-toast-info-icon: hsl(217 91% 60%);
+  --kodon-toast-info-bg: hsl(217 91% 97%);
+  --kodon-toast-info-border: hsl(217 91% 84%);
+  --kodon-toast-info-text: hsl(217 91% 26%);
+  --kodon-toast-info-icon: hsl(217 91% 52%);
 
   // Close button
-  --kodon-toast-close-hover-bg: rgba(255, 255, 255, 0.1);
+  --kodon-toast-close-hover-bg: rgba(0, 0, 0, 0.08);
 }
 
 .kodon-toast-icon {

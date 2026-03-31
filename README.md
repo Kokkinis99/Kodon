@@ -4,191 +4,105 @@
 
 Smooth, interruptible animations with stacking, hover expansion, and swipe-to-dismiss.
 
----
-
-## Features
-
-- 🎯 **Sonner-inspired animations** — Smooth stacking with peek effect
-- 🔄 **Interruptible transitions** — CSS transitions that retarget smoothly
-- 👆 **Swipe to dismiss** — With reversible fade & blur effects
-- 📚 **Stackable** — Hover to expand and see all toasts
-- 🎨 **Fully customizable** — Colors, timing, and layout via CSS variables
-- ♿ **Accessible** — Respects `prefers-reduced-motion`
+Live demo: [kodon.kokkin.is](https://kodon.kokkin.is)
 
 ---
 
-## Installation
+## Usage
+
+This is a copy-paste library, not an npm package. Copy the files, own the code.
+
+### 1. Install peer dependencies
 
 ```bash
-npm install kodon
+npm install ng-primitives lucide-angular
 ```
 
----
+### 2. Copy these files into your project
 
-## Quick Start
+- [`toast.component.ts`](src/lib/toast.component.ts)
+- [`toast.service.ts`](src/lib/toast.service.ts)
+- [`provide-toast.ts`](src/lib/provide-toast.ts)
+- [`toast.component.scss`](src/lib/toast.component.scss)
+- [`_toast-visuals.scss`](src/lib/_toast-visuals.scss)
 
-### 1. Provide the toast config
+### 3. Wire it up
 
 ```typescript
 // app.config.ts
-import { ApplicationConfig } from '@angular/core';
-import { provideKodonToast } from 'kodon';
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideKodonToast({
-      placement: 'bottom-end',
-      duration: 5000,
-      maxToasts: 3
-    })
-  ]
-};
+provideKodonToast({ placement: 'bottom-end' })
 ```
 
-### 2. Import the styles
+### 4. Use it
+
+```typescript
+toast = inject(KodonToast)
+
+this.toast.success('Changes saved')
+this.toast.error('Something went wrong')
+this.toast.warning('Session expiring soon')
+this.toast.info('New version available')
+```
+
+---
+
+## Configuration
+
+```typescript
+provideKodonToast({
+  placement: 'bottom-end', // 'top-start' | 'top-center' | 'top-end' | 'bottom-start' | 'bottom-center' | 'bottom-end'
+  duration: 5000,          // auto-dismiss time in ms
+  maxToasts: 3,            // max visible at once
+  gap: 14,                 // gap between expanded toasts (px)
+  swipeThreshold: 100      // swipe distance before dismiss (px)
+})
+```
+
+Swipe directions are auto-calculated from placement — toasts can only be swiped toward screen edges.
+
+---
+
+## Customisation
+
+The files are split on purpose. `_toast-visuals.scss` owns colors, typography, and variant styles. `toast.component.scss` owns animations, stacking, and layout. You can rework the visuals without touching the animation logic, or replace both entirely.
+
+### Colors — override in your global styles or edit the file directly
 
 ```scss
-// styles.scss
-@use 'kodon/toast-visuals';
-```
+:root {
+  --kodon-toast-success-bg: hsl(142 76% 96%);
+  --kodon-toast-success-border: hsl(142 76% 82%);
+  --kodon-toast-success-text: hsl(142 76% 18%);
+  --kodon-toast-success-icon: hsl(142 76% 36%);
 
-### 3. Use the toast service
-
-```typescript
-import { Component, inject } from '@angular/core';
-import { KodonToast } from 'kodon';
-
-@Component({
-  selector: 'app-example',
-  template: `<button (click)="showToast()">Show Toast</button>`
-})
-export class ExampleComponent {
-  private toast = inject(KodonToast);
-
-  showToast() {
-    this.toast.success('Changes saved!');
-  }
+  /* same pattern for error, warning, info */
 }
 ```
 
----
+### Animation — adjust in `toast.component.scss`
 
-## API
-
-### `KodonToast` Service
-
-```typescript
-// Show variants
-toast.error('Something went wrong');
-toast.success('Operation completed');
-toast.warning('Please review');
-toast.info('New updates available');
-
-// With options
-toast.show({
-  message: 'Custom toast',
-  variant: 'info',
-  duration: 3000
-});
-```
-
-### `provideKodonToast()` Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `placement` | `KodonToastPlacement` | `'bottom-end'` | Screen position |
-| `duration` | `number` | `5000` | Auto-dismiss time (ms) |
-| `maxToasts` | `number` | `3` | Max visible toasts |
-| `gap` | `number` | `14` | Gap between expanded toasts (px) |
-| `swipeThreshold` | `number` | `100` | Distance (px) to swipe before dismissal |
-
-**Placement options:** `'top-start'`, `'top-center'`, `'top-end'`, `'bottom-start'`, `'bottom-center'`, `'bottom-end'`
-
-> Swipe directions are auto-calculated based on placement — toasts can only be swiped toward screen edges (e.g., `bottom-end` allows swiping right and down).
-
----
-
-## Customization
-
-### CSS Custom Properties
-
-Override in your global styles:
-
-```css
-:root {
-  /* Animation */
+```scss
+:host {
+  --kodon-toast-peek: 11px;          /* how much stacked toasts peek above each other */
+  --kodon-toast-width: 355px;
+  --kodon-toast-border-radius: 10px;
   --kodon-toast-duration: 350ms;
   --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1);
-  
-  /* Layout */
-  --kodon-toast-peek: 11px;
-  --kodon-toast-padding: 14px 16px;
-  --kodon-toast-border-radius: 10px;
-  --kodon-toast-max-width: 400px;
-  
-  /* Error variant */
-  --kodon-toast-error-bg: hsl(0 84% 60% / 0.15);
-  --kodon-toast-error-border: hsl(0 84% 60%);
-  --kodon-toast-error-text: hsl(0 84% 80%);
-  --kodon-toast-error-icon: hsl(0 84% 60%);
-  
-  /* Success variant */
-  --kodon-toast-success-bg: hsl(142 76% 36% / 0.15);
-  --kodon-toast-success-border: hsl(142 76% 46%);
-  --kodon-toast-success-text: hsl(142 76% 66%);
-  --kodon-toast-success-icon: hsl(142 76% 46%);
-  
-  /* Warning variant */
-  --kodon-toast-warning-bg: hsl(38 92% 50% / 0.15);
-  --kodon-toast-warning-border: hsl(38 92% 50%);
-  --kodon-toast-warning-text: hsl(38 92% 70%);
-  --kodon-toast-warning-icon: hsl(38 92% 50%);
-  
-  /* Info variant */
-  --kodon-toast-info-bg: hsl(217 91% 60% / 0.15);
-  --kodon-toast-info-border: hsl(217 91% 60%);
-  --kodon-toast-info-text: hsl(217 91% 80%);
-  --kodon-toast-info-icon: hsl(217 91% 60%);
 }
 ```
 
-### Custom Icons
-
-Pass a template for custom icons:
-
-```typescript
-toast.show({
-  message: 'Custom icon!',
-  variant: 'info',
-  icon: myIconTemplate
-});
-```
-
 ---
 
-## How It Works
+## How it works
 
-### Why Transitions Over Keyframes?
+The animations use CSS transitions, not keyframes — so they can be interrupted mid-flight. If a new toast arrives while one is entering, it picks up from wherever it is rather than restarting.
 
-> "When adding multiple toasts, older ones jump into their new position instead of smoothly transitioning. CSS transitions can be **interrupted and retargeted**, unlike keyframes."
-> — [Emil Kowalski](https://emilkowal.ski/ui/building-a-toast-component)
+Exit runs via the Web Animations API so the animation can complete before the DOM node is removed. A container-level pointer guard keeps the stack expanded during swipe gestures and exit animations, preventing it from collapsing while toasts are mid-transition.
 
-### Animation Techniques
-
-- **Child transforms** — Applied to inner element to prevent hover flicker
-- **Pseudo-element hover areas** — Invisible elements bridge gaps between toasts
-- **will-change** — Prevents GPU/CPU swap jitter
-- **Absolute value swipe progress** — Fade/blur works in all swipe directions
-
----
-
-## Credits
-
-- Animation approach inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski
-- Built on [ng-primitives](https://angularprimitives.com/) for headless toast behavior
+Inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski and the [ng-primitives](https://ng-primitives.mintlify.app/) headless toast implementation.
 
 ---
 
 ## License
 
-MIT © George Kokkinis
+MIT © [George Kokkinis](https://kokkin.is)

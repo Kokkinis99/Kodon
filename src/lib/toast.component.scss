@@ -41,10 +41,7 @@
   padding: var(--kodon-toast-padding);
   border-radius: var(--kodon-toast-border-radius);
   width: var(--kodon-toast-width, 355px);
-  backdrop-filter: blur(8px);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 10px 0 rgba(10, 10, 10, 0.05);
 
   will-change: transform, opacity;
 
@@ -129,6 +126,25 @@
   filter: blur(calc(var(--swipe-progress) * 4px));
 }
 
+// =============================================================================
+// EXIT: slide down on timeout / close button (not swipe)
+// =============================================================================
+//
+// The exit animation is driven by the Web Animations API (element.animate())
+// in KodonToastComponent, called synchronously before manager.dismiss() so
+// that setupExitAnimation's getAnimations() call (subtree:false, host only)
+// finds the running animation and waits for it before destroying the view.
+//
+// This rule stops the content's CSS transitions during exit so they don't
+// fight the WAAPI animation playing on the host element.
+:host[data-exit] .kodon-toast-content {
+  transition: none;
+}
+
+// =============================================================================
+// SWIPE: gesture dismiss
+// =============================================================================
+
 // Swipe gesture support - front toast
 :host[data-swiping='true'][data-front='true'] .kodon-toast-content {
   transition: none;
@@ -138,27 +154,15 @@
   @include swipe-dismiss-effect;
 }
 
-// Swipe gesture support - non-front toasts (collapsed)
-:host[data-swiping='true'][data-front='false'][data-expanded='false'] {
-  --stack-index: var(--ngp-toast-index, 1);
-  --peek-offset: calc((var(--stack-index) - 1) * var(--kodon-toast-peek));
-  --scale-factor: calc(1 - ((var(--stack-index) - 1) * 0.05));
-
-  .kodon-toast-content {
-    transition: none;
-    transform:
-      translateX(var(--ngp-toast-swipe-amount-x, 0))
-      translateY(calc(var(--ngp-toast-swipe-amount-y, 0) - var(--peek-offset)))
-      scale(var(--scale-factor));
-    @include swipe-dismiss-effect;
-  }
-}
-
-// Swipe gesture support - non-front toasts (expanded)
-:host[data-swiping='true'][data-front='false'][data-expanded='true'] .kodon-toast-content {
+// Swipe gesture support - non-front toasts (collapsed or expanded)
+// Always use offset-based positioning during swipe regardless of expanded state.
+// If hover is lost mid-drag, data-expanded flips false — using peek+scale here
+// would cause the toast to visually "minimize" mid-swipe. Offset is always set.
+:host[data-swiping='true'][data-front='false'] .kodon-toast-content {
   transition: none;
   transform:
     translateX(var(--ngp-toast-swipe-amount-x, 0))
     translateY(calc(var(--ngp-toast-swipe-amount-y, 0) - var(--ngp-toast-offset, 0)));
   @include swipe-dismiss-effect;
 }
+

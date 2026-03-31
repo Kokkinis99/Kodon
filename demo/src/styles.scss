@@ -1,33 +1,231 @@
 @use '../../src/lib/toast-visuals';
 
+// =============================================================================
+// DESIGN SYSTEM
+// =============================================================================
+
+:root {
+  font-family: 'Inter', sans-serif;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  --font-line-height: calc(1em + 0.5rem);
+
+  --font-size-32: 2rem;
+  --font-size-24: 1.5rem;
+  --font-size-16: 1rem;
+  --font-size-14: 0.875rem;
+  --font-size-12: 0.75rem;
+  --font-size-8: 0.5rem;
+
+  --font-smoothing: antialiased;
+
+  // Light mode colors (default)
+  --color-bg: hsl(0 0% 98%);
+  --color-text: hsl(0 0% 4%);
+  --color-text-secondary: hsl(0 0% 44%);
+  --color-text-link: hsl(0 0% 60%);
+  --color-hover: hsl(0 0% 4% / 0.06);
+  --color-border: hsl(0 0% 4% / 0.1);
+  --color-backdrop: hsl(0 0% 98% / 0.1);
+  --color-backdrop-closing: hsl(0 0% 98% / 0);
+
+  // Animation durations
+  --duration-micro: 50ms;
+  --duration-fast: 100ms;
+  --duration-standard: 150ms;
+  --duration-slow: 200ms;
+
+  // Easing: ease-out (for enter/exit)
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-out-circ: cubic-bezier(0.075, 0.82, 0.165, 1);
+
+  // Easing: ease-in-out (for movement)
+  --ease-in-out-quad: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-in-out-quint: cubic-bezier(0.86, 0, 0.07, 1);
+  --ease-in-out-expo: cubic-bezier(1, 0, 0, 1);
+  --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+
+  // Easing: spring (for bounce/overshoot)
+  --ease-duration: 500ms;
+  --ease-spring: linear(
+    0,
+    0.387 6.5%,
+    0.68 13.5%,
+    0.888 21.2%,
+    0.962 25.4%,
+    1.017 29.8%,
+    1.066 37%,
+    1.08 45.5%,
+    1.07 53%,
+    1.011 78.3%,
+    1
+  );
+
+  --ease-duration-soft: 750ms;
+  --ease-spring-soft: linear(
+    0,
+    0.218 4.3%,
+    0.453 9%,
+    0.671 14.3%,
+    0.846 20.5%,
+    0.961 28%,
+    1.025 37%,
+    1.036 48%,
+    1.016 62%,
+    1.004 78%,
+    1
+  );
+}
+
+[data-theme='dark'] {
+  --color-bg: hsl(0 0% 4%);
+  --color-text: hsl(0 0% 98%);
+  --color-text-secondary: hsl(0 0% 63%);
+  --color-text-link: hsl(0 0% 80%);
+  --color-hover: hsl(0 0% 98% / 0.08);
+  --color-border: hsl(0 0% 98% / 0.12);
+}
+
+// =============================================================================
+// TYPOGRAPHY CLASSES
+// =============================================================================
+
+.heading-lg {
+  font-size: var(--font-size-24);
+  line-height: var(--font-line-height);
+  font-weight: var(--font-weight-medium);
+  -webkit-font-smoothing: var(--font-smoothing);
+}
+
+.heading-sm {
+  font-size: var(--font-size-14);
+  line-height: var(--font-line-height);
+  font-weight: var(--font-weight-medium);
+  -webkit-font-smoothing: var(--font-smoothing);
+  color: var(--color-text);
+}
+
+.heading-tt {
+  font-size: var(--font-size-12);
+  line-height: var(--font-line-height);
+  font-weight: var(--font-weight-medium);
+  -webkit-font-smoothing: var(--font-smoothing);
+  color: var(--color-text);
+}
+
+.body-tt {
+  font-size: var(--font-size-8);
+  line-height: var(--font-line-height);
+  font-weight: var(--font-weight-regular);
+  -webkit-font-smoothing: var(--font-smoothing);
+  color: var(--color-text);
+}
+
+.body {
+  font-size: var(--font-size-14);
+  line-height: var(--font-line-height);
+  font-weight: var(--font-weight-regular);
+  -webkit-font-smoothing: var(--font-smoothing);
+}
+
+.body-sm {
+  font-size: var(--font-size-12);
+  line-height: var(--font-line-height);
+  font-weight: var(--font-weight-regular);
+  -webkit-font-smoothing: var(--font-smoothing);
+}
+
+// =============================================================================
+// RESET & BASE
+// =============================================================================
+
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
-}
-
-:root {
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #12121a;
-  --bg-card: #1a1a24;
-  --text-primary: #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --accent: #8b5cf6;
-  --accent-glow: rgba(139, 92, 246, 0.4);
-}
-
-html, body {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-text-link) transparent;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.15), transparent),
-    var(--bg-primary);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color var(--duration-slow) ease,
+    color var(--duration-slow) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
+}
+
+a {
+  color: var(--color-text-secondary);
+  text-decoration-color: var(--color-text-link);
+}
+
+button {
+  transition: transform var(--duration-fast) var(--ease-out-quart);
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+
+// =============================================================================
+// ANIMATIONS
+// =============================================================================
+
+@keyframes icon-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.icon-enter {
+  animation: icon-enter var(--duration-standard) var(--ease-out-quart);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-enter {
+    animation: none;
+  }
 }

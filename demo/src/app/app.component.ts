@@ -384,6 +384,8 @@ this.toast.error('Something went wrong')</code></pre>
       border-radius: 8px;
       border: 1px solid var(--color-border);
       margin: 0;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
     }
 
     .code-block code {
@@ -459,6 +461,22 @@ this.toast.error('Something went wrong')</code></pre>
 
     .footer a:hover {
       color: var(--color-text);
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.25rem;
+        padding-top: 3.5rem;
+      }
+
+      .main {
+        margin-top: 2.5rem;
+        gap: 2.5rem;
+      }
+
+      .code-block code {
+        font-size: var(--font-size-12);
+      }
     }
   `]
 })

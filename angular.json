@@ -17,7 +17,14 @@
             "tsConfig": "demo/tsconfig.json",
             "inlineStyleLanguage": "scss",
             "styles": ["demo/src/styles.scss"],
-            "scripts": []
+            "scripts": [],
+            "assets": [
+              {
+                "glob": "favicon.svg",
+                "input": "demo/src",
+                "output": "/"
+              }
+            ]
           },
           "configurations": {
             "production": {

@@ -58,7 +58,7 @@ provideKodonToast({
 })
 ```
 
-Swipe directions are auto-calculated from placement — toasts can only be swiped toward screen edges.
+Swipe directions are auto-calculated from placement: toasts swipe toward the edges they sit against (`bottom-end` swipes down or right). Centred toasts swipe vertically toward their edge, or left and right.
 
 ---
 

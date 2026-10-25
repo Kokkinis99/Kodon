@@ -13,15 +13,16 @@ type SwipeDirection = 'top' | 'right' | 'bottom' | 'left';
 
 /**
  * Get allowed swipe directions based on placement.
- * Toasts can only be swiped toward screen edges.
+ * Toasts can only be swiped toward the screen edges they sit against;
+ * centred toasts can also go left or right.
  */
 function getSwipeDirections(placement: KodonToastPlacement): SwipeDirection[] {
   const map: Record<KodonToastPlacement, SwipeDirection[]> = {
     'top-start': ['top', 'left'],
-    'top-center': ['top'],
+    'top-center': ['top', 'left', 'right'],
     'top-end': ['top', 'right'],
     'bottom-start': ['bottom', 'left'],
-    'bottom-center': ['bottom'],
+    'bottom-center': ['bottom', 'left', 'right'],
     'bottom-end': ['bottom', 'right']
   };
   return map[placement];
@@ -30,7 +31,8 @@ function getSwipeDirections(placement: KodonToastPlacement): SwipeDirection[] {
 export interface KodonToastConfig {
   /**
    * Where toasts appear on screen.
-   * Swipe directions are auto-calculated (toward screen edges only).
+   * Swipe directions are auto-calculated: toward the edges the toast sits against,
+   * plus left and right for centred placements.
    * @default 'bottom-end'
    */
   placement?: KodonToastPlacement;

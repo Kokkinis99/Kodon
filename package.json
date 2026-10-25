@@ -1,6 +1,6 @@
 {
   "name": "kodon",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sonner-style toast notifications for Angular",
   "keywords": [
     "angular",

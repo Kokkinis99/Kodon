@@ -65,6 +65,14 @@
   height: var(--ngp-toast-gap, 14px);
 }
 
+// Recent ng-primitives inserts the toast before it sets data-front, so the @starting-style
+// rules below never match and the toast just appears. Until then, hold it below its place;
+// when data-front arrives it transitions up.
+:host:not([data-front]) .kodon-toast-content {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
 // Front toast - default state
 :host[data-front='true'] .kodon-toast-content {
   opacity: 1;

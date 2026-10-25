@@ -79,6 +79,13 @@
   }
 }
 
+// ng-primitives starts a swipe unless the pressed element itself is focusable. Pressing ×
+// lands on its icon, which isn't, so a swipe began and the click was lost if the pointer
+// moved a pixel. Presses go through the icon to the button instead.
+.kodon-toast-close > * {
+  pointer-events: none;
+}
+
 // Variant: Error
 :host[data-variant='error'] .kodon-toast-content {
   background-color: var(--kodon-toast-error-bg);

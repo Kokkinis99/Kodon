@@ -19,6 +19,9 @@ import {
 
 export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning';
 
+/** How a toast leaves when it isn't swiped: slide down and away, or pop in place. */
+export type KodonToastExit = 'slide' | 'pop';
+
 export interface KodonToastContext {
   message: string;
   variant: KodonToastVariant;
@@ -69,7 +72,7 @@ interface NgpToastInternal {
       <button
         type="button"
         class="kodon-toast-close"
-        (click)="dismiss()"
+        (click)="dismiss('pop')"
         aria-label="Dismiss toast"
       >
         <lucide-icon [img]="X" [size]="16" [strokeWidth]="2" />
@@ -113,8 +116,12 @@ export class KodonToastComponent implements OnInit {
     this._installContainerGuard();
   }
 
-  public dismiss(): void {
-    this._startExitAnimation();
+  /**
+   * Dismisses the toast. Timing out slides it away; the × button pops it, like a bubble.
+   * Pass 'pop' to get the same exit from your own close control.
+   */
+  public dismiss(exit: KodonToastExit = 'slide'): void {
+    this._startExitAnimation(exit);
     this._toastManager.dismiss(this._ngpToast);
   }
 
@@ -168,7 +175,7 @@ export class KodonToastComponent implements OnInit {
    * ng-primitives only updates the signal array after detach completes, so
    * without this, siblings don't move until the exit animation is already done.
    */
-  private _startExitAnimation(): void {
+  private _startExitAnimation(exit: KodonToastExit = 'slide'): void {
     const el = this._elementRef.nativeElement;
     const isSwiping = el.dataset['swiping'] === 'true';
     const isVisible = el.dataset['visible'] !== 'false';
@@ -193,11 +200,42 @@ export class KodonToastComponent implements OnInit {
       }, 600);
     }
 
+    // With reduced motion, both exits are a plain fade.
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (exit === 'pop') {
+      // Swells a little, then shrinks into its centre as it fades.
+      el.animate(
+        still
+          ? [{ opacity: '1' }, { opacity: '0' }]
+          : [
+              {
+                transform: 'scale(1)',
+                opacity: '1',
+                filter: 'blur(0px)',
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+              },
+              {
+                transform: 'scale(1.02)',
+                opacity: '1',
+                filter: 'blur(0px)', // sharp until it starts to shrink
+                offset: 0.3,
+                easing: 'cubic-bezier(0.55, 0, 1, 0.45)'
+              },
+              { transform: 'scale(0.5)', opacity: '0', filter: 'blur(1px)' }
+            ],
+        { duration: still ? 150 : 180, fill: 'forwards' }
+      );
+      return;
+    }
+
     el.animate(
-      [
-        { transform: 'translateY(0)', opacity: '1', filter: 'blur(0px)' },
-        { transform: 'translateY(110%)', opacity: '0', filter: 'blur(2px)' }
-      ],
+      still
+        ? [{ opacity: '1' }, { opacity: '0' }]
+        : [
+            { transform: 'translateY(0)', opacity: '1', filter: 'blur(0px)' },
+            { transform: 'translateY(110%)', opacity: '0', filter: 'blur(2px)' }
+          ],
       {
         duration: 350,
         easing: 'cubic-bezier(0.165, 0.84, 0.44, 1)',

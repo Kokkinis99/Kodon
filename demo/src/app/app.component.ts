@@ -103,7 +103,7 @@ import {
           <div class="setup-step">
             <p class="heading-tt step-label">3. Wire it up</p>
             <pre class="code-block"><code>// app.config.ts
-provideKodonToast(&#123; placement: 'bottom-right' &#125;)</code></pre>
+provideKodonToast(&#123; placement: 'bottom-end' &#125;)</code></pre>
           </div>
 
           <div class="setup-step">

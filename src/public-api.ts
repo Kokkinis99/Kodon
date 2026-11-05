@@ -3,7 +3,7 @@
  */
 
 // Component
-export { KodonToastComponent, KodonToastVariant, KodonToastContext } from './lib/toast.component';
+export { KodonToastComponent, KodonToastVariant, KodonToastContext, KodonToastExit } from './lib/toast.component';
 
 // Service
 export { KodonToast, KodonToastOptions } from './lib/toast.service';

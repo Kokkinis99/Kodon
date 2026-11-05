@@ -60,6 +60,12 @@ provideKodonToast({
 
 Swipe directions are auto-calculated from placement: toasts swipe toward the edges they sit against (`bottom-end` swipes down or right). Centred toasts swipe vertically toward their edge, or left and right.
 
+On phones, bottom toasts sit above the home indicator. For that, your viewport meta needs `viewport-fit=cover`:
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+```
+
 ---
 
 ## Customisation
@@ -84,7 +90,7 @@ The files are split on purpose. `_toast-visuals.scss` owns colors, typography, a
 ```scss
 :host {
   --kodon-toast-peek: 11px;          /* how much stacked toasts peek above each other */
-  --kodon-toast-width: 355px;
+  --kodon-toast-width: min(355px, calc(100vw - 32px));
   --kodon-toast-border-radius: 10px;
   --kodon-toast-duration: 350ms;
   --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -96,6 +102,8 @@ The files are split on purpose. `_toast-visuals.scss` owns colors, typography, a
 ## How it works
 
 The animations use CSS transitions, not keyframes — so they can be interrupted mid-flight. If a new toast arrives while one is entering, it picks up from wherever it is rather than restarting.
+
+A toast that times out slides down and away. One closed with × pops: it swells a little, then shrinks into its centre. With reduced motion, both are a plain fade.
 
 Exit runs via the Web Animations API so the animation can complete before the DOM node is removed. A container-level pointer guard keeps the stack expanded during swipe gestures and exit animations, preventing it from collapsing while toasts are mid-transition.
 

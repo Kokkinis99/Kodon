@@ -86,6 +86,17 @@
   pointer-events: none;
 }
 
+// The × is drawn at 24px but takes presses across 44px.
+.kodon-toast-close {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
+}
+
 // Variant: Error
 :host[data-variant='error'] .kodon-toast-content {
   background-color: var(--kodon-toast-error-bg);

@@ -12,7 +12,8 @@
   --kodon-toast-peek: 11px;
   --kodon-toast-padding: 14px 16px;
   --kodon-toast-border-radius: 10px;
-  --kodon-toast-width: 355px;
+  // On narrow screens the toast keeps a 16px gutter on each side.
+  --kodon-toast-width: min(355px, calc(100vw - 32px));
   --kodon-toast-duration: 350ms;
   --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1); // ease-out-quart
 
@@ -24,6 +25,36 @@
 
   // Transition for when toasts beyond maxToasts become visible
   transition: opacity var(--kodon-toast-duration) var(--kodon-toast-easing);
+
+  // Bottom placements sit clear of the home indicator on phones
+  // (the inset is only non-zero with viewport-fit=cover).
+  &[data-position-y='bottom'] {
+    bottom: env(safe-area-inset-bottom);
+  }
+
+  // On a phone the toast spans the screen with 16px gutters, whatever the placement.
+  // The container keeps ng-primitives' 24px edge offset, so pull it back 8px.
+  @media (max-width: 440px) {
+    right: -8px;
+  }
+
+  // Start placements: the container sits 24px from the left, so the toast hangs right of it.
+  &[data-position-x='start'] {
+    right: auto;
+    left: 0;
+
+    @media (max-width: 440px) {
+      left: -8px;
+    }
+  }
+
+  // Centred placements: the container sits at 50% with no width of its own, so
+  // right: 0 put the toast entirely left of centre.
+  &[data-position-x='center'] {
+    right: auto;
+    left: 0;
+    translate: -50% 0;
+  }
 
   // Visibility for toasts beyond maxToasts
   &[data-visible='false'] {
@@ -41,6 +72,7 @@
   padding: var(--kodon-toast-padding);
   border-radius: var(--kodon-toast-border-radius);
   width: var(--kodon-toast-width, 355px);
+  box-sizing: border-box;
   box-shadow: 0 4px 10px 0 rgba(10, 10, 10, 0.05);
 
   will-change: transform, opacity;

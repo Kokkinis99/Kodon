@@ -24,3 +24,5 @@ npm-debug.log*
 
 # Temp
 tmp/
+promo-dist/
+promo/*.mp4

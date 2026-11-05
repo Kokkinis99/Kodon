@@ -1,4 +1,14 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild
+} from '@angular/core';
 import { KodonToast } from '../../../src/lib/toast.service';
 import { KodonToastVariant } from '../../../src/lib/toast.component';
 import { KodonToastPlacement } from '../../../src/lib/provide-toast';
@@ -66,9 +76,6 @@ import {
               <lucide-icon [img]="Info" [size]="16" [strokeWidth]="2.5" />
               Info
             </button>
-          </div>
-
-          <div class="demo-section">
             <button class="stack-btn" (click)="showPromise()">
               <lucide-icon [img]="LoaderCircle" [size]="16" [strokeWidth]="2" />
               Promise
@@ -79,18 +86,16 @@ import {
             </button>
             <button class="stack-btn" (click)="showStack()">
               <lucide-icon [img]="Layers" [size]="16" [strokeWidth]="2" />
-              Stack Multiple
+              Stack
             </button>
           </div>
 
-          <div class="placement">
-            <p class="heading-tt step-label" id="placement-label">Placement</p>
-            <div class="placement-screen" role="radiogroup" aria-labelledby="placement-label">
+          <div class="stage">
+            <div class="placement-screen" role="radiogroup" aria-label="Placement">
               @for (p of placements; track p) {
                 <button
                   type="button"
                   role="radio"
-                  class="placement-spot"
                   [class]="'placement-spot ' + p"
                   [attr.aria-checked]="placement() === p"
                   [attr.aria-label]="p"
@@ -99,11 +104,16 @@ import {
                   <span class="placement-bar"></span>
                 </button>
               }
-              <span class="placement-name">{{ placement() }}</span>
+              @for (name of [placement()]; track name) {
+                <span class="placement-name">{{ name }}</span>
+              }
             </div>
+
+            <!-- Keyed on the text: each new snippet is a fresh element that fades in. -->
+            <pre class="code-block live-code" #code><code>@for (code of [snippet()]; track code) {<span class="snippet">{{ code }}</span>}</code></pre>
           </div>
 
-          <pre class="code-block live-code" aria-live="off"><code>{{ snippet() }}</code></pre>
+
         </div>
 
         <div class="setup">
@@ -345,23 +355,29 @@ this.toast.error('Something went wrong')</code></pre>
     .playground {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
-      max-width: 560px;
+      gap: 0.75rem;
     }
-    .placement {
+    /* The placement screen sits to the left of the code it changes. */
+    .stage {
       display: flex;
-      flex-direction: column;
-      gap: 0.625rem;
-      margin-top: 0.5rem;
+      align-items: flex-start;
+      gap: 0.75rem;
     }
+    .stage .live-code {
+      flex: 1;
+      min-width: 0;
+    }
+    /* A little screen: pick where the toasts go. */
     .placement-screen {
       position: relative;
+      flex-shrink: 0;
+      width: 160px;
+      aspect-ratio: 16 / 10;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: 1fr 1fr;
-      width: 220px;
-      aspect-ratio: 16 / 10;
-      padding: 6px;
+      padding: 4px;
+      box-sizing: border-box;
       border: 1px solid var(--color-border);
       border-radius: 10px;
       background: var(--color-hover);
@@ -381,8 +397,8 @@ this.toast.error('Something went wrong')</code></pre>
     .placement-spot.top-start, .placement-spot.top-center, .placement-spot.top-end { align-items: flex-start; }
     .placement-spot.bottom-start, .placement-spot.bottom-center, .placement-spot.bottom-end { align-items: flex-end; }
     .placement-bar {
-      width: 30px;
-      height: 9px;
+      width: 26px;
+      height: 8px;
       border-radius: 3px;
       background: var(--color-border);
       transition:
@@ -413,9 +429,47 @@ this.toast.error('Something went wrong')</code></pre>
       font-size: var(--font-size-12);
       color: var(--color-text-secondary);
       pointer-events: none;
+      transition: opacity 200ms ease, filter 200ms ease;
+      @starting-style {
+        opacity: 0;
+        filter: blur(2px);
+      }
     }
     .live-code {
-      min-height: 9.5em;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+    .snippet {
+      display: block;
+      transition:
+        opacity 220ms ease,
+        translate 260ms var(--ease-out-quart),
+        filter 220ms ease;
+      @starting-style {
+        opacity: 0;
+        translate: 0 4px;
+        filter: blur(3px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .snippet {
+        transition: opacity 150ms ease;
+        @starting-style {
+          translate: none;
+          filter: none;
+        }
+      }
+    }
+    @media (max-width: 640px) {
+      .stage {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .placement-screen {
+        width: 100%;
+        height: 84px;
+        aspect-ratio: auto;
+      }
     }
     .stack-btn {
       display: inline-flex;
@@ -646,6 +700,31 @@ export class AppComponent {
     'bottom-end'
   ];
   readonly placement = signal<KodonToastPlacement>('bottom-end');
+
+  private readonly injector = inject(Injector);
+  private readonly code = viewChild<ElementRef<HTMLElement>>('code');
+
+  constructor() {
+    // The code block grows and shrinks to each new snippet instead of jumping.
+    // Component effects run before the view updates, so this reads the old height.
+    effect(() => {
+      this.snippet();
+      const el = this.code()?.nativeElement;
+      if (!el) return;
+      const from = el.offsetHeight;
+      afterNextRender(
+        () => {
+          const to = el.offsetHeight;
+          if (from === to || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          el.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+            duration: 280,
+            easing: 'cubic-bezier(0.165, 0.84, 0.44, 1)'
+          });
+        },
+        { injector: this.injector }
+      );
+    });
+  }
   private readonly lastCall = signal(`this.toast.success('Changes saved')`);
 
   readonly snippet = computed(() => {

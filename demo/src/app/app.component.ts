@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { KodonToast } from '../../../src/lib/toast.service';
 import { KodonToastVariant } from '../../../src/lib/toast.component';
+import { KodonToastPlacement } from '../../../src/lib/provide-toast';
 import {
   LucideAngularModule,
   CircleCheck,
@@ -9,7 +10,9 @@ import {
   Info,
   Layers,
   GitBranch,
-  FileCode
+  FileCode,
+  LoaderCircle,
+  RefreshCw
 } from 'lucide-angular';
 
 @Component({
@@ -45,27 +48,62 @@ import {
       </section>
 
       <section class="main">
-        <div class="demo-section">
-          <button class="toast-btn success" (click)="showToast('success')">
-            <lucide-icon [img]="CircleCheck" [size]="16" [strokeWidth]="2.5" />
-            Success
-          </button>
-          <button class="toast-btn error" (click)="showToast('error')">
-            <lucide-icon [img]="CircleX" [size]="16" [strokeWidth]="2.5" />
-            Error
-          </button>
-          <button class="toast-btn warning" (click)="showToast('warning')">
-            <lucide-icon [img]="TriangleAlert" [size]="16" [strokeWidth]="2.5" />
-            Warning
-          </button>
-          <button class="toast-btn info" (click)="showToast('info')">
-            <lucide-icon [img]="Info" [size]="16" [strokeWidth]="2.5" />
-            Info
-          </button>
-          <button class="stack-btn" (click)="showStack()">
-            <lucide-icon [img]="Layers" [size]="16" [strokeWidth]="2" />
-            Stack Multiple
-          </button>
+        <div class="playground">
+          <div class="demo-section">
+            <button class="toast-btn success" (click)="showToast('success')">
+              <lucide-icon [img]="CircleCheck" [size]="16" [strokeWidth]="2.5" />
+              Success
+            </button>
+            <button class="toast-btn error" (click)="showToast('error')">
+              <lucide-icon [img]="CircleX" [size]="16" [strokeWidth]="2.5" />
+              Error
+            </button>
+            <button class="toast-btn warning" (click)="showToast('warning')">
+              <lucide-icon [img]="TriangleAlert" [size]="16" [strokeWidth]="2.5" />
+              Warning
+            </button>
+            <button class="toast-btn info" (click)="showToast('info')">
+              <lucide-icon [img]="Info" [size]="16" [strokeWidth]="2.5" />
+              Info
+            </button>
+          </div>
+
+          <div class="demo-section">
+            <button class="stack-btn" (click)="showPromise()">
+              <lucide-icon [img]="LoaderCircle" [size]="16" [strokeWidth]="2" />
+              Promise
+            </button>
+            <button class="stack-btn" (click)="showUpdate()">
+              <lucide-icon [img]="RefreshCw" [size]="16" [strokeWidth]="2" />
+              Update in place
+            </button>
+            <button class="stack-btn" (click)="showStack()">
+              <lucide-icon [img]="Layers" [size]="16" [strokeWidth]="2" />
+              Stack Multiple
+            </button>
+          </div>
+
+          <div class="placement">
+            <p class="heading-tt step-label" id="placement-label">Placement</p>
+            <div class="placement-screen" role="radiogroup" aria-labelledby="placement-label">
+              @for (p of placements; track p) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="placement-spot"
+                  [class]="'placement-spot ' + p"
+                  [attr.aria-checked]="placement() === p"
+                  [attr.aria-label]="p"
+                  (click)="placement.set(p)"
+                >
+                  <span class="placement-bar"></span>
+                </button>
+              }
+              <span class="placement-name">{{ placement() }}</span>
+            </div>
+          </div>
+
+          <pre class="code-block live-code" aria-live="off"><code>{{ snippet() }}</code></pre>
         </div>
 
         <div class="setup">
@@ -304,6 +342,81 @@ this.toast.error('Something went wrong')</code></pre>
       color: white;
     }
 
+    .playground {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 560px;
+    }
+    .placement {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      margin-top: 0.5rem;
+    }
+    .placement-screen {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 1fr 1fr;
+      width: 220px;
+      aspect-ratio: 16 / 10;
+      padding: 6px;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: var(--color-hover);
+    }
+    .placement-spot {
+      display: flex;
+      padding: 6px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .placement-spot.top-start, .placement-spot.bottom-start { justify-content: flex-start; }
+    .placement-spot.top-center, .placement-spot.bottom-center { justify-content: center; }
+    .placement-spot.top-end, .placement-spot.bottom-end { justify-content: flex-end; }
+    .placement-spot.top-start, .placement-spot.top-center, .placement-spot.top-end { align-items: flex-start; }
+    .placement-spot.bottom-start, .placement-spot.bottom-center, .placement-spot.bottom-end { align-items: flex-end; }
+    .placement-bar {
+      width: 30px;
+      height: 9px;
+      border-radius: 3px;
+      background: var(--color-border);
+      transition:
+        background-color var(--duration-slow) var(--ease-out-quad),
+        scale var(--duration-fast) var(--ease-out-quart);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .placement-spot:hover .placement-bar {
+        background: var(--color-text-link);
+      }
+    }
+    .placement-spot:active .placement-bar {
+      scale: 0.92;
+    }
+    .placement-spot[aria-checked='true'] .placement-bar {
+      background: var(--color-text);
+    }
+    .placement-spot:focus-visible {
+      outline: 2px solid var(--color-text);
+      outline-offset: -2px;
+    }
+    .placement-name {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: var(--font-size-12);
+      color: var(--color-text-secondary);
+      pointer-events: none;
+    }
+    .live-code {
+      min-height: 9.5em;
+    }
     .stack-btn {
       display: inline-flex;
       align-items: center;
@@ -491,25 +604,30 @@ export class AppComponent {
   protected readonly Layers = Layers;
   protected readonly GitBranch = GitBranch;
   protected readonly FileCode = FileCode;
+  protected readonly LoaderCircle = LoaderCircle;
+  protected readonly RefreshCw = RefreshCw;
 
-  private readonly messages: Record<KodonToastVariant, string[]> = {
+  private readonly messages: Record<Exclude<KodonToastVariant, 'loading'>, string[]> = {
     success: [
       'Changes saved successfully',
       'File uploaded',
       'Profile updated',
-      'Payment completed'
+      'Payment completed',
+      'Your invoice for October has been paid and a receipt is on its way to your inbox'
     ],
     error: [
       'Failed to save changes',
       'Network error occurred',
       'Permission denied',
-      'Invalid credentials'
+      'Invalid credentials',
+      'We couldn’t reach the server. Your changes are kept on this device until you’re back online'
     ],
     warning: [
       'Session expires in 5 minutes',
       'Storage almost full',
       'Unsaved changes detected',
-      'Connection unstable'
+      'Connection unstable',
+      'You have unsaved changes in 2 documents. They will be lost if you close this tab'
     ],
     info: [
       'New version available',
@@ -519,14 +637,74 @@ export class AppComponent {
     ]
   };
 
-  showToast(variant: KodonToastVariant): void {
-    const msgs = this.messages[variant];
-    const message = msgs[Math.floor(Math.random() * msgs.length)];
-    this.toast[variant](message);
+  readonly placements: KodonToastPlacement[] = [
+    'top-start',
+    'top-center',
+    'top-end',
+    'bottom-start',
+    'bottom-center',
+    'bottom-end'
+  ];
+  readonly placement = signal<KodonToastPlacement>('bottom-end');
+  private readonly lastCall = signal(`this.toast.success('Changes saved')`);
+
+  readonly snippet = computed(() => {
+    const placement = this.placement();
+    const config =
+      placement === 'bottom-end'
+        ? 'provideKodonToast()'
+        : `provideKodonToast({ placement: '${placement}' })`;
+    return `// app.config.ts\n${config}\n\n// anywhere\n${this.lastCall()}`;
+  });
+
+  private pick<T>(list: T[]): T {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  showToast(variant: Exclude<KodonToastVariant, 'loading'>): void {
+    const message = this.pick(this.messages[variant]);
+    this.toast.show({ message, variant, placement: this.placement() });
+    this.lastCall.set(`this.toast.${variant}('${message.replace(/'/g, "\\'")}')`);
+  }
+
+  showPromise(): void {
+    const fails = Math.random() < 0.3;
+    const upload = new Promise<number>((resolve, reject) =>
+      setTimeout(() => (fails ? reject(new Error('offline')) : resolve(3)), 1800)
+    );
+    this.toast.promise(
+      upload,
+      {
+        loading: 'Uploading 3 photos…',
+        success: n => `${n} photos uploaded`,
+        error: 'Upload failed. Check your connection and try again.'
+      },
+      { placement: this.placement() }
+    );
+    this.lastCall.set(`this.toast.promise(upload(), {
+  loading: 'Uploading 3 photos…',
+  success: n => \`\${n} photos uploaded\`,
+  error: 'Upload failed. Check your connection and try again.'
+})`);
+  }
+
+  private syncStep = 0;
+
+  showUpdate(): void {
+    const steps: [KodonToastVariant, string][] = [
+      ['loading', 'Syncing 12 files…'],
+      ['info', '6 of 12 files synced'],
+      ['success', 'All 12 files synced']
+    ];
+    const [variant, message] = steps[this.syncStep % steps.length];
+    this.syncStep++;
+    this.toast.show({ id: 'sync', variant, message, placement: this.placement() });
+    this.lastCall.set(`// same id: the toast on screen changes, nothing stacks
+this.toast.show({ id: 'sync', variant: '${variant}', message: '${message}' })`);
   }
 
   showStack(): void {
-    const variants: KodonToastVariant[] = ['success', 'error', 'warning', 'info'];
+    const variants = ['success', 'error', 'warning', 'info'] as const;
     variants.forEach((variant, i) => {
       setTimeout(() => this.showToast(variant), i * 400);
     });

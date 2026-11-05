@@ -6,6 +6,10 @@ Smooth, interruptible animations with stacking, hover expansion, and swipe-to-di
 
 Live demo: [kodon.kokkin.is](https://kodon.kokkin.is)
 
+[![Kōdon promo: stacking, toasts of any height, promise toasts, placements, swipe and pop](promo/kodon-promo.gif)](promo/kodon-promo.mp4)
+
+<sub>Click for the full 1080p video.</sub>
+
 ---
 
 ## Usage

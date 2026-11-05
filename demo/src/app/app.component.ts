@@ -1,6 +1,17 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild
+} from '@angular/core';
 import { KodonToast } from '../../../src/lib/toast.service';
 import { KodonToastVariant } from '../../../src/lib/toast.component';
+import { KodonToastPlacement } from '../../../src/lib/provide-toast';
 import {
   LucideAngularModule,
   CircleCheck,
@@ -9,7 +20,9 @@ import {
   Info,
   Layers,
   GitBranch,
-  FileCode
+  FileCode,
+  LoaderCircle,
+  RefreshCw
 } from 'lucide-angular';
 
 @Component({
@@ -45,27 +58,62 @@ import {
       </section>
 
       <section class="main">
-        <div class="demo-section">
-          <button class="toast-btn success" (click)="showToast('success')">
-            <lucide-icon [img]="CircleCheck" [size]="16" [strokeWidth]="2.5" />
-            Success
-          </button>
-          <button class="toast-btn error" (click)="showToast('error')">
-            <lucide-icon [img]="CircleX" [size]="16" [strokeWidth]="2.5" />
-            Error
-          </button>
-          <button class="toast-btn warning" (click)="showToast('warning')">
-            <lucide-icon [img]="TriangleAlert" [size]="16" [strokeWidth]="2.5" />
-            Warning
-          </button>
-          <button class="toast-btn info" (click)="showToast('info')">
-            <lucide-icon [img]="Info" [size]="16" [strokeWidth]="2.5" />
-            Info
-          </button>
-          <button class="stack-btn" (click)="showStack()">
-            <lucide-icon [img]="Layers" [size]="16" [strokeWidth]="2" />
-            Stack Multiple
-          </button>
+        <div class="playground">
+          <div class="demo-section">
+            <button class="toast-btn success" (click)="showToast('success')">
+              <lucide-icon [img]="CircleCheck" [size]="16" [strokeWidth]="2.5" />
+              Success
+            </button>
+            <button class="toast-btn error" (click)="showToast('error')">
+              <lucide-icon [img]="CircleX" [size]="16" [strokeWidth]="2.5" />
+              Error
+            </button>
+            <button class="toast-btn warning" (click)="showToast('warning')">
+              <lucide-icon [img]="TriangleAlert" [size]="16" [strokeWidth]="2.5" />
+              Warning
+            </button>
+            <button class="toast-btn info" (click)="showToast('info')">
+              <lucide-icon [img]="Info" [size]="16" [strokeWidth]="2.5" />
+              Info
+            </button>
+            <button class="stack-btn" (click)="showPromise()">
+              <lucide-icon [img]="LoaderCircle" [size]="16" [strokeWidth]="2" />
+              Promise
+            </button>
+            <button class="stack-btn" (click)="showUpdate()">
+              <lucide-icon [img]="RefreshCw" [size]="16" [strokeWidth]="2" />
+              Update in place
+            </button>
+            <button class="stack-btn" (click)="showStack()">
+              <lucide-icon [img]="Layers" [size]="16" [strokeWidth]="2" />
+              Stack
+            </button>
+          </div>
+
+          <div class="stage">
+            <div class="placement-screen" role="radiogroup" aria-label="Placement">
+              @for (p of placements; track p) {
+                <button
+                  type="button"
+                  role="radio"
+                  [class]="'placement-spot ' + p"
+                  [attr.aria-checked]="placement() === p"
+                  [attr.aria-label]="p"
+                  (click)="placement.set(p)"
+                >
+                  <span class="placement-bar"></span>
+                </button>
+              }
+              @for (name of [placement()]; track name) {
+                <span class="placement-name">{{ name }}</span>
+              }
+            </div>
+
+            <!-- Keyed on the text: each new snippet is a fresh element that fades in. -->
+            <pre class="code-block live-code" #code><code>@for (code of [snippet()]; track code) {<span class="snippet">{{ code }}</span>}</code></pre>
+          </div>
+
+
         </div>
 
         <div class="setup">
@@ -304,6 +352,125 @@ this.toast.error('Something went wrong')</code></pre>
       color: white;
     }
 
+    .playground {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    /* The placement screen sits to the left of the code it changes. */
+    .stage {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .stage .live-code {
+      flex: 1;
+      min-width: 0;
+    }
+    /* A little screen: pick where the toasts go. */
+    .placement-screen {
+      position: relative;
+      flex-shrink: 0;
+      width: 160px;
+      aspect-ratio: 16 / 10;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 1fr 1fr;
+      padding: 4px;
+      box-sizing: border-box;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: var(--color-hover);
+    }
+    .placement-spot {
+      display: flex;
+      padding: 6px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .placement-spot.top-start, .placement-spot.bottom-start { justify-content: flex-start; }
+    .placement-spot.top-center, .placement-spot.bottom-center { justify-content: center; }
+    .placement-spot.top-end, .placement-spot.bottom-end { justify-content: flex-end; }
+    .placement-spot.top-start, .placement-spot.top-center, .placement-spot.top-end { align-items: flex-start; }
+    .placement-spot.bottom-start, .placement-spot.bottom-center, .placement-spot.bottom-end { align-items: flex-end; }
+    .placement-bar {
+      width: 26px;
+      height: 8px;
+      border-radius: 3px;
+      background: var(--color-border);
+      transition:
+        background-color var(--duration-slow) var(--ease-out-quad),
+        scale var(--duration-fast) var(--ease-out-quart);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .placement-spot:hover .placement-bar {
+        background: var(--color-text-link);
+      }
+    }
+    .placement-spot:active .placement-bar {
+      scale: 0.92;
+    }
+    .placement-spot[aria-checked='true'] .placement-bar {
+      background: var(--color-text);
+    }
+    .placement-spot:focus-visible {
+      outline: 2px solid var(--color-text);
+      outline-offset: -2px;
+    }
+    .placement-name {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: var(--font-size-12);
+      color: var(--color-text-secondary);
+      pointer-events: none;
+      transition: opacity 200ms ease, filter 200ms ease;
+      @starting-style {
+        opacity: 0;
+        filter: blur(2px);
+      }
+    }
+    .live-code {
+      line-height: 1.5;
+      overflow: hidden;
+    }
+    .snippet {
+      display: block;
+      transition:
+        opacity 220ms ease,
+        translate 260ms var(--ease-out-quart),
+        filter 220ms ease;
+      @starting-style {
+        opacity: 0;
+        translate: 0 4px;
+        filter: blur(3px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .snippet {
+        transition: opacity 150ms ease;
+        @starting-style {
+          translate: none;
+          filter: none;
+        }
+      }
+    }
+    @media (max-width: 640px) {
+      .stage {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .placement-screen {
+        width: 100%;
+        height: 84px;
+        aspect-ratio: auto;
+      }
+    }
     .stack-btn {
       display: inline-flex;
       align-items: center;
@@ -491,25 +658,30 @@ export class AppComponent {
   protected readonly Layers = Layers;
   protected readonly GitBranch = GitBranch;
   protected readonly FileCode = FileCode;
+  protected readonly LoaderCircle = LoaderCircle;
+  protected readonly RefreshCw = RefreshCw;
 
-  private readonly messages: Record<KodonToastVariant, string[]> = {
+  private readonly messages: Record<Exclude<KodonToastVariant, 'loading'>, string[]> = {
     success: [
       'Changes saved successfully',
       'File uploaded',
       'Profile updated',
-      'Payment completed'
+      'Payment completed',
+      'Your invoice for October has been paid and a receipt is on its way to your inbox'
     ],
     error: [
       'Failed to save changes',
       'Network error occurred',
       'Permission denied',
-      'Invalid credentials'
+      'Invalid credentials',
+      'We couldn’t reach the server. Your changes are kept on this device until you’re back online'
     ],
     warning: [
       'Session expires in 5 minutes',
       'Storage almost full',
       'Unsaved changes detected',
-      'Connection unstable'
+      'Connection unstable',
+      'You have unsaved changes in 2 documents. They will be lost if you close this tab'
     ],
     info: [
       'New version available',
@@ -519,14 +691,99 @@ export class AppComponent {
     ]
   };
 
-  showToast(variant: KodonToastVariant): void {
-    const msgs = this.messages[variant];
-    const message = msgs[Math.floor(Math.random() * msgs.length)];
-    this.toast[variant](message);
+  readonly placements: KodonToastPlacement[] = [
+    'top-start',
+    'top-center',
+    'top-end',
+    'bottom-start',
+    'bottom-center',
+    'bottom-end'
+  ];
+  readonly placement = signal<KodonToastPlacement>('bottom-end');
+
+  private readonly injector = inject(Injector);
+  private readonly code = viewChild<ElementRef<HTMLElement>>('code');
+
+  constructor() {
+    // The code block grows and shrinks to each new snippet instead of jumping.
+    // Component effects run before the view updates, so this reads the old height.
+    effect(() => {
+      this.snippet();
+      const el = this.code()?.nativeElement;
+      if (!el) return;
+      const from = el.offsetHeight;
+      afterNextRender(
+        () => {
+          const to = el.offsetHeight;
+          if (from === to || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          el.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+            duration: 280,
+            easing: 'cubic-bezier(0.165, 0.84, 0.44, 1)'
+          });
+        },
+        { injector: this.injector }
+      );
+    });
+  }
+  private readonly lastCall = signal(`this.toast.success('Changes saved')`);
+
+  readonly snippet = computed(() => {
+    const placement = this.placement();
+    const config =
+      placement === 'bottom-end'
+        ? 'provideKodonToast()'
+        : `provideKodonToast({ placement: '${placement}' })`;
+    return `// app.config.ts\n${config}\n\n// anywhere\n${this.lastCall()}`;
+  });
+
+  private pick<T>(list: T[]): T {
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  showToast(variant: Exclude<KodonToastVariant, 'loading'>): void {
+    const message = this.pick(this.messages[variant]);
+    this.toast.show({ message, variant, placement: this.placement() });
+    this.lastCall.set(`this.toast.${variant}('${message.replace(/'/g, "\\'")}')`);
+  }
+
+  showPromise(): void {
+    const fails = Math.random() < 0.3;
+    const upload = new Promise<number>((resolve, reject) =>
+      setTimeout(() => (fails ? reject(new Error('offline')) : resolve(3)), 1800)
+    );
+    this.toast.promise(
+      upload,
+      {
+        loading: 'Uploading 3 photos…',
+        success: n => `${n} photos uploaded`,
+        error: 'Upload failed. Check your connection and try again.'
+      },
+      { placement: this.placement() }
+    );
+    this.lastCall.set(`this.toast.promise(upload(), {
+  loading: 'Uploading 3 photos…',
+  success: n => \`\${n} photos uploaded\`,
+  error: 'Upload failed. Check your connection and try again.'
+})`);
+  }
+
+  private syncStep = 0;
+
+  showUpdate(): void {
+    const steps: [KodonToastVariant, string][] = [
+      ['loading', 'Syncing 12 files…'],
+      ['info', '6 of 12 files synced'],
+      ['success', 'All 12 files synced']
+    ];
+    const [variant, message] = steps[this.syncStep % steps.length];
+    this.syncStep++;
+    this.toast.show({ id: 'sync', variant, message, placement: this.placement() });
+    this.lastCall.set(`// same id: the toast on screen changes, nothing stacks
+this.toast.show({ id: 'sync', variant: '${variant}', message: '${message}' })`);
   }
 
   showStack(): void {
-    const variants: KodonToastVariant[] = ['success', 'error', 'warning', 'info'];
+    const variants = ['success', 'error', 'warning', 'info'] as const;
     variants.forEach((variant, i) => {
       setTimeout(() => this.showToast(variant), i * 400);
     });

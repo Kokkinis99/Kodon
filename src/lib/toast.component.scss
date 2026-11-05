@@ -17,6 +17,9 @@
   --kodon-toast-duration: 350ms;
   --kodon-toast-easing: cubic-bezier(0.165, 0.84, 0.44, 1); // ease-out-quart
 
+  // Which way the stack grows: 1 for bottom placements (up), -1 for top ones (down).
+  --kodon-y: 1;
+
   // Position within the container - let ng-primitives container handle fixed positioning
   position: absolute;
   bottom: 0;
@@ -30,6 +33,13 @@
   // (the inset is only non-zero with viewport-fit=cover).
   &[data-position-y='bottom'] {
     bottom: env(safe-area-inset-bottom);
+  }
+
+  // Top placements hang down from the container and mirror every vertical movement.
+  &[data-position-y='top'] {
+    --kodon-y: -1;
+    top: env(safe-area-inset-top);
+    bottom: auto;
   }
 
   // On a phone the toast spans the screen with 16px gutters, whatever the placement.
@@ -73,18 +83,54 @@
   border-radius: var(--kodon-toast-border-radius);
   width: var(--kodon-toast-width, 355px);
   box-sizing: border-box;
-  box-shadow: 0 4px 10px 0 rgba(10, 10, 10, 0.05);
+  // The card is drawn by ::before (see below); this keeps the content inside its border.
+  border: 1px solid transparent;
+  isolation: isolate;
 
   will-change: transform, opacity;
 
   transition:
     transform var(--kodon-toast-duration) var(--kodon-toast-easing),
     opacity var(--kodon-toast-duration) var(--kodon-toast-easing),
-    filter var(--kodon-toast-duration) var(--kodon-toast-easing);
+    filter var(--kodon-toast-duration) var(--kodon-toast-easing),
+    color 200ms ease; // follows the card when a toast changes variant in place
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
+}
+
+// The card itself: background, border and shadow. It lives on a layer of its own so a
+// collapsed toast can take the front toast's height without changing its real height,
+// which ng-primitives measures to place the stack when it expands.
+.kodon-toast-content::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: auto -1px -1px;
+  height: calc(100% + 2px);
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  box-shadow: 0 4px 10px 0 rgba(10, 10, 10, 0.05);
+  pointer-events: auto;
+  transition:
+    height var(--kodon-toast-duration) var(--kodon-toast-easing),
+    background-color 200ms ease,
+    border-color 200ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+:host[data-position-y='top'] .kodon-toast-content::before {
+  inset: -1px -1px auto;
+}
+
+// The content fades in and out as a toast moves to and from the back of the stack.
+.kodon-toast-content > * {
+  transition: opacity var(--kodon-toast-duration) var(--kodon-toast-easing);
 }
 
 // Extend hover area to cover the gap between toasts when expanded
@@ -97,12 +143,17 @@
   height: var(--ngp-toast-gap, 14px);
 }
 
+:host[data-position-y='top'][data-front='false'][data-expanded='true'] .kodon-toast-content::after {
+  top: auto;
+  bottom: 100%;
+}
+
 // Recent ng-primitives inserts the toast before it sets data-front, so the @starting-style
 // rules below never match and the toast just appears. Until then, hold it below its place;
 // when data-front arrives it transitions up.
 :host:not([data-front]) .kodon-toast-content {
   opacity: 0;
-  transform: translateY(100%);
+  transform: translateY(calc(100% * var(--kodon-y)));
 }
 
 // Front toast - default state
@@ -113,7 +164,7 @@
   // Entry animation via @starting-style
   @starting-style {
     opacity: 0;
-    transform: translateY(100%);
+    transform: translateY(calc(100% * var(--kodon-y)));
   }
 }
 
@@ -126,24 +177,48 @@
   .kodon-toast-content {
     opacity: 1;
     transform:
-      translateY(calc(var(--peek-offset) * -1))
+      translateY(calc(var(--peek-offset) * -1 * var(--kodon-y)))
       scale(var(--scale-factor));
 
     @starting-style {
       opacity: 0;
-      transform: translateY(100%);
+      transform: translateY(calc(100% * var(--kodon-y)));
     }
+  }
+}
+
+// Toasts behind the front one scale around the middle of the card as drawn, which for a
+// collapsed toast is the front toast's height, not its own.
+:host[data-front='false'] .kodon-toast-content {
+  transform-origin: center calc(100% - var(--ngp-toast-front-height, 0px) / 2);
+}
+
+:host[data-position-y='top'][data-front='false'] .kodon-toast-content {
+  transform-origin: center calc(var(--ngp-toast-front-height, 0px) / 2);
+}
+
+// Collapsed, a toast behind the front one is drawn at the front toast's height and its
+// content is hidden, so a taller toast doesn't stick out above (or below) the stack.
+:host[data-front='false'][data-expanded='false'] .kodon-toast-content {
+  pointer-events: none;
+
+  &::before {
+    height: var(--ngp-toast-front-height, 0px);
+  }
+
+  > * {
+    opacity: 0;
   }
 }
 
 // When expanded (hover), show full stack
 :host[data-front='false'][data-expanded='true'] .kodon-toast-content {
   opacity: 1;
-  transform: translateY(calc(var(--ngp-toast-offset, 0) * -1)) scale(1);
+  transform: translateY(calc(var(--ngp-toast-offset, 0px) * -1 * var(--kodon-y))) scale(1);
 
   @starting-style {
     opacity: 0;
-    transform: translateY(100%);
+    transform: translateY(calc(100% * var(--kodon-y)));
   }
 }
 
@@ -202,7 +277,7 @@
   transition: none;
   transform:
     translateX(var(--ngp-toast-swipe-amount-x, 0))
-    translateY(calc(var(--ngp-toast-swipe-amount-y, 0) - var(--ngp-toast-offset, 0)));
+    translateY(calc(var(--ngp-toast-swipe-amount-y, 0px) - var(--ngp-toast-offset, 0px) * var(--kodon-y)));
   @include swipe-dismiss-effect;
 }
 

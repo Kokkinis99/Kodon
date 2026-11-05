@@ -1,4 +1,4 @@
-import { Provider } from '@angular/core';
+import { InjectionToken, Provider } from '@angular/core';
 import { provideToastConfig } from 'ng-primitives/toast';
 
 export type KodonToastPlacement =
@@ -9,15 +9,15 @@ export type KodonToastPlacement =
   | 'bottom-center'
   | 'bottom-end';
 
-type SwipeDirection = 'top' | 'right' | 'bottom' | 'left';
+export type KodonSwipeDirection = 'top' | 'right' | 'bottom' | 'left';
 
 /**
  * Get allowed swipe directions based on placement.
  * Toasts can only be swiped toward the screen edges they sit against;
  * centred toasts can also go left or right.
  */
-function getSwipeDirections(placement: KodonToastPlacement): SwipeDirection[] {
-  const map: Record<KodonToastPlacement, SwipeDirection[]> = {
+export function getSwipeDirections(placement: KodonToastPlacement): KodonSwipeDirection[] {
+  const map: Record<KodonToastPlacement, KodonSwipeDirection[]> = {
     'top-start': ['top', 'left'],
     'top-center': ['top', 'left', 'right'],
     'top-end': ['top', 'right'],
@@ -27,6 +27,12 @@ function getSwipeDirections(placement: KodonToastPlacement): SwipeDirection[] {
   };
   return map[placement];
 }
+
+/** @internal The resolved defaults, for KodonToast to read. */
+export const KODON_TOAST_DEFAULTS = new InjectionToken<{ duration: number; placement: KodonToastPlacement }>(
+  'KODON_TOAST_DEFAULTS',
+  { factory: () => ({ duration: 5000, placement: 'bottom-end' }) }
+);
 
 export interface KodonToastConfig {
   /**
@@ -79,11 +85,13 @@ export interface KodonToastConfig {
  */
 export function provideKodonToast(config: KodonToastConfig = {}): Provider[] {
   const placement = config.placement ?? 'bottom-end';
+  const duration = config.duration ?? 5000;
 
   return [
+    { provide: KODON_TOAST_DEFAULTS, useValue: { duration, placement } },
     provideToastConfig({
       placement,
-      duration: config.duration ?? 5000,
+      duration,
       maxToasts: config.maxToasts ?? 3,
       gap: config.gap ?? 14,
       swipeThreshold: config.swipeThreshold ?? 100,

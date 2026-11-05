@@ -16,7 +16,9 @@
             "browser": "demo/src/main.ts",
             "tsConfig": "demo/tsconfig.json",
             "inlineStyleLanguage": "scss",
-            "styles": ["demo/src/styles.scss"],
+            "styles": [
+              "demo/src/styles.scss"
+            ],
             "scripts": [],
             "assets": [
               {
@@ -53,6 +55,58 @@
             },
             "development": {
               "buildTarget": "demo:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "promo": {
+      "projectType": "application",
+      "root": "promo",
+      "sourceRoot": "promo/src",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "promo-dist",
+            "index": "promo/src/index.html",
+            "browser": "promo/src/main.ts",
+            "tsConfig": "promo/tsconfig.json",
+            "inlineStyleLanguage": "scss",
+            "styles": [
+              "promo/src/styles.scss"
+            ],
+            "scripts": [],
+            "assets": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "promo:build:production"
+            },
+            "development": {
+              "buildTarget": "promo:build:development"
             }
           },
           "defaultConfiguration": "development"

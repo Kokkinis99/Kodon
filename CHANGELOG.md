@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0 - 2026-11-06
+
+- `toast.promise()`: a loading toast that turns into success or error in place when the promise settles.
+- `toast.loading()`, and a `loading` variant with a spinner. It stays until updated or dismissed.
+- Toasts have ids. Showing a toast with an id that's on screen updates it in place, with the new icon and text animating in.
+- `toast.dismiss(id)` closes one toast; `toast.dismiss()` closes them all.
+- Per-toast `placement`, `duration`, `icon` and `id` on every method.
+- Toasts of different heights stack cleanly: collapsed, the ones behind take the front toast's height.
+- Top placements drop in from above and stack downward, instead of moving as if they were at the bottom.
+- The demo has a placement picker, promise and update examples, and code that follows what you click.
+
+Breaking: methods return `{ id, dismiss }` instead of ng-primitives' `NgpToastRef`, and `KodonToastContext` now holds a `state` signal. Variant colours are drawn on `.kodon-toast-content::before`, so restyle that if you override backgrounds or borders.
+
 ## 0.0.3 - 2026-11-06
 
 - Closing a toast with × pops it in place instead of sliding it away. `dismiss('pop')` gives the same exit from your own controls.

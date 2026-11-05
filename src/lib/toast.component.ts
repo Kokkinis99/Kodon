@@ -2,8 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  OnDestroy,
   OnInit,
+  Signal,
   inject,
+  signal,
   TemplateRef
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
@@ -14,23 +17,45 @@ import {
   CircleCheck,
   TriangleAlert,
   Info,
+  LoaderCircle,
   X
 } from 'lucide-angular';
 
-export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning';
+export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning' | 'loading';
 
 /** How a toast leaves when it isn't swiped: slide down and away, or pop in place. */
 export type KodonToastExit = 'slide' | 'pop';
 
-export interface KodonToastContext {
+/** What a toast shows. KodonToast replaces it when a toast is updated by id. */
+export interface KodonToastState {
   message: string;
   variant: KodonToastVariant;
   icon?: TemplateRef<unknown>;
+  /** Milliseconds before it closes itself. Infinity keeps it until dismissed or updated. */
+  duration: number;
 }
 
-/** @internal Access shape for ng-primitives' private timer property. */
+export interface KodonToastContext {
+  id: string;
+  state: Signal<KodonToastState>;
+  /** @internal Lets KodonToast reach the component to update or dismiss it by id. */
+  register(toast: KodonToastComponent | null): void;
+}
+
+/** @internal Access shape for ng-primitives' private timer. */
+interface NgpTimer {
+  callback: () => void;
+  duration: number;
+  remaining: number;
+  start(): void;
+  stop(): void;
+}
+
+/** @internal Access shape for ng-primitives' toast internals. */
 interface NgpToastInternal {
-  timer: { callback: () => void };
+  timer: NgpTimer;
+  isInteracting: Signal<boolean>;
+  options: { expanded: Signal<boolean> };
 }
 
 /**
@@ -44,15 +69,17 @@ interface NgpToastInternal {
   imports: [NgTemplateOutlet, LucideAngularModule],
   hostDirectives: [NgpToast],
   host: {
-    '[attr.data-variant]': 'context.variant'
+    '[attr.data-variant]': 'context.state().variant',
+    '[attr.data-updated]': 'updated() || null'
   },
   template: `
+    @let s = context.state();
     <div class="kodon-toast-content">
-      @if (context.icon) {
-        <ng-container *ngTemplateOutlet="context.icon" />
+      @if (s.icon) {
+        <ng-container *ngTemplateOutlet="s.icon" />
       } @else {
         <span class="kodon-toast-icon">
-          @switch (context.variant) {
+          @switch (s.variant) {
             @case ('error') {
               <lucide-icon [img]="CircleX" [size]="20" [strokeWidth]="2" />
             }
@@ -65,10 +92,16 @@ interface NgpToastInternal {
             @case ('info') {
               <lucide-icon [img]="Info" [size]="20" [strokeWidth]="2" />
             }
+            @case ('loading') {
+              <lucide-icon class="kodon-toast-spinner" [img]="LoaderCircle" [size]="20" [strokeWidth]="2" />
+            }
           }
         </span>
       }
-      <span class="kodon-toast-message">{{ context.message }}</span>
+      <!-- Keyed on the text, so an update swaps in a fresh span that fades in. -->
+      @for (message of [s.message]; track message) {
+        <span class="kodon-toast-message">{{ message }}</span>
+      }
       <button
         type="button"
         class="kodon-toast-close"
@@ -82,7 +115,7 @@ interface NgpToastInternal {
   styleUrl: './toast.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class KodonToastComponent implements OnInit {
+export class KodonToastComponent implements OnInit, OnDestroy {
   private readonly _toastManager = inject(NgpToastManager);
   private readonly _ngpToast = inject(NgpToast);
   private readonly _elementRef = inject(ElementRef<HTMLElement>);
@@ -94,7 +127,11 @@ export class KodonToastComponent implements OnInit {
   protected readonly CircleCheck = CircleCheck;
   protected readonly TriangleAlert = TriangleAlert;
   protected readonly Info = Info;
+  protected readonly LoaderCircle = LoaderCircle;
   protected readonly X = X;
+
+  /** Set once the toast has been updated in place, so only swaps animate, not the first render. */
+  protected readonly updated = signal(false);
 
   /** Cached reference to the ng-primitives container element. */
   private _container: HTMLElement | null = null;
@@ -107,13 +144,51 @@ export class KodonToastComponent implements OnInit {
    */
   ngOnInit(): void {
     this._container = this._elementRef.nativeElement.parentElement;
-    const internal = this._ngpToast as unknown as NgpToastInternal;
-    const original = internal.timer.callback;
-    internal.timer.callback = () => {
+    const timer = this._internal.timer;
+    const original = timer.callback;
+    timer.callback = () => {
       this._startExitAnimation();
       original();
     };
+
+    // ng-primitives restarts the timer whenever the stack collapses. A toast that waits
+    // (a loading toast, or duration: Infinity) must not start counting down.
+    const start = timer.start.bind(timer);
+    timer.start = () => {
+      if (Number.isFinite(this.context.state().duration)) start();
+    };
+    this.restartTimer();
+
     this._installContainerGuard();
+    this.context.register(this);
+  }
+
+  ngOnDestroy(): void {
+    this.context.register(null);
+  }
+
+  /** @internal Called by KodonToast after it replaces the state. */
+  public onUpdated(): void {
+    this.updated.set(true);
+    this.restartTimer();
+  }
+
+  /** Starts the countdown over from the current state's duration. */
+  private restartTimer(): void {
+    const timer = this._internal.timer;
+    const duration = this.context.state().duration;
+    timer.stop();
+    if (!Number.isFinite(duration)) return;
+    timer.duration = duration;
+    timer.remaining = duration;
+    // Hovered or held, the stack stays paused; ng-primitives starts it again on leave.
+    if (!this._internal.options.expanded() && !this._internal.isInteracting()) {
+      timer.start();
+    }
+  }
+
+  private get _internal(): NgpToastInternal {
+    return this._ngpToast as unknown as NgpToastInternal;
   }
 
   /**
@@ -229,12 +304,14 @@ export class KodonToastComponent implements OnInit {
       return;
     }
 
+    // Out the way it came in: down for bottom placements, up for top ones.
+    const away = el.dataset['positionY'] === 'top' ? '-110%' : '110%';
     el.animate(
       still
         ? [{ opacity: '1' }, { opacity: '0' }]
         : [
             { transform: 'translateY(0)', opacity: '1', filter: 'blur(0px)' },
-            { transform: 'translateY(110%)', opacity: '0', filter: 'blur(2px)' }
+            { transform: `translateY(${away})`, opacity: '0', filter: 'blur(2px)' }
           ],
       {
         duration: 350,

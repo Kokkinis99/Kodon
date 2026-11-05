@@ -29,6 +29,12 @@
   --kodon-toast-info-text: hsl(217 91% 26%);
   --kodon-toast-info-icon: hsl(217 91% 52%);
 
+  // Loading variant
+  --kodon-toast-loading-bg: hsl(0 0% 100%);
+  --kodon-toast-loading-border: hsl(0 0% 89%);
+  --kodon-toast-loading-text: hsl(0 0% 15%);
+  --kodon-toast-loading-icon: hsl(0 0% 45%);
+
   // Close button
   --kodon-toast-close-hover-bg: rgba(0, 0, 0, 0.08);
 }
@@ -99,9 +105,12 @@
 
 // Variant: Error
 :host[data-variant='error'] .kodon-toast-content {
-  background-color: var(--kodon-toast-error-bg);
-  border: 1px solid var(--kodon-toast-error-border);
   color: var(--kodon-toast-error-text);
+
+  &::before {
+    background-color: var(--kodon-toast-error-bg);
+    border-color: var(--kodon-toast-error-border);
+  }
 }
 
 :host[data-variant='error'] .kodon-toast-icon {
@@ -110,9 +119,12 @@
 
 // Variant: Success
 :host[data-variant='success'] .kodon-toast-content {
-  background-color: var(--kodon-toast-success-bg);
-  border: 1px solid var(--kodon-toast-success-border);
   color: var(--kodon-toast-success-text);
+
+  &::before {
+    background-color: var(--kodon-toast-success-bg);
+    border-color: var(--kodon-toast-success-border);
+  }
 }
 
 :host[data-variant='success'] .kodon-toast-icon {
@@ -121,9 +133,12 @@
 
 // Variant: Warning
 :host[data-variant='warning'] .kodon-toast-content {
-  background-color: var(--kodon-toast-warning-bg);
-  border: 1px solid var(--kodon-toast-warning-border);
   color: var(--kodon-toast-warning-text);
+
+  &::before {
+    background-color: var(--kodon-toast-warning-bg);
+    border-color: var(--kodon-toast-warning-border);
+  }
 }
 
 :host[data-variant='warning'] .kodon-toast-icon {
@@ -132,11 +147,90 @@
 
 // Variant: Info
 :host[data-variant='info'] .kodon-toast-content {
-  background-color: var(--kodon-toast-info-bg);
-  border: 1px solid var(--kodon-toast-info-border);
   color: var(--kodon-toast-info-text);
+
+  &::before {
+    background-color: var(--kodon-toast-info-bg);
+    border-color: var(--kodon-toast-info-border);
+  }
 }
 
 :host[data-variant='info'] .kodon-toast-icon {
   color: var(--kodon-toast-info-icon);
+}
+
+// Variant: Loading
+:host[data-variant='loading'] .kodon-toast-content {
+  color: var(--kodon-toast-loading-text);
+
+  &::before {
+    background-color: var(--kodon-toast-loading-bg);
+    border-color: var(--kodon-toast-loading-border);
+  }
+}
+
+:host[data-variant='loading'] .kodon-toast-icon {
+  color: var(--kodon-toast-loading-icon);
+}
+
+.kodon-toast-icon {
+  transition: color 200ms ease;
+}
+
+.kodon-toast-spinner {
+  display: flex;
+  animation: kodon-toast-spin 0.8s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 2s;
+  }
+}
+
+@keyframes kodon-toast-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+// Updated in place (a promise settling, or show() with the same id): the new icon pops
+// in and the new text fades up. Only after an update, never on the first render.
+:host[data-updated] .kodon-toast-icon > * {
+  transition:
+    opacity 250ms ease,
+    scale 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 250ms ease;
+
+  @starting-style {
+    opacity: 0;
+    scale: 0.5;
+    filter: blur(2px);
+  }
+}
+
+:host[data-updated] .kodon-toast-message {
+  transition:
+    opacity 250ms ease,
+    translate 250ms cubic-bezier(0.165, 0.84, 0.44, 1);
+
+  @starting-style {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host[data-updated] .kodon-toast-icon > * {
+    transition: opacity 150ms ease;
+    @starting-style {
+      scale: 1;
+      filter: none;
+    }
+  }
+
+  :host[data-updated] .kodon-toast-message {
+    transition: opacity 150ms ease;
+    @starting-style {
+      translate: none;
+    }
+  }
 }

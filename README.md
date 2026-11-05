@@ -6,6 +6,10 @@ Smooth, interruptible animations with stacking, hover expansion, and swipe-to-di
 
 Live demo: [kodon.kokkin.is](https://kodon.kokkin.is)
 
+[![Kōdon promo: stacking, toasts of any height, promise toasts, placements, swipe and pop](promo/kodon-promo.gif)](promo/kodon-promo.mp4)
+
+<sub>Click for the full 1080p video.</sub>
+
 ---
 
 ## Usage
@@ -44,6 +48,44 @@ this.toast.warning('Session expiring soon')
 this.toast.info('New version available')
 ```
 
+### Promises
+
+One toast follows the promise: a spinner while it runs, then success or error in the same spot.
+
+```typescript
+this.toast.promise(this.api.upload(photos), {
+  loading: 'Uploading 3 photos…',
+  success: n => `${n} photos uploaded`,
+  error: 'Upload failed'
+})
+```
+
+It returns `{ id, dismiss, unwrap }`; `unwrap()` gives you the original promise's result. If someone closes the toast while it's loading, it stays closed.
+
+### Updating a toast
+
+Show a toast with an id that's already on screen and that toast changes in place instead of stacking a new one. Its countdown starts over.
+
+```typescript
+this.toast.loading('Syncing 12 files…', { id: 'sync' })
+this.toast.info('6 of 12 files synced', { id: 'sync' })
+this.toast.success('All 12 files synced', { id: 'sync' })
+```
+
+`loading()` toasts stay until you update or dismiss them. So does any toast with `duration: Infinity`.
+
+### Dismissing
+
+```typescript
+const { id } = this.toast.success('Saved')
+this.toast.dismiss(id) // that one
+this.toast.dismiss()   // all of them
+```
+
+### Per-toast options
+
+Every method takes a second argument with `id`, `duration`, `icon` (a template) and `placement`. A number still works as the duration, as before.
+
 ---
 
 ## Configuration
@@ -57,6 +99,8 @@ provideKodonToast({
   swipeThreshold: 100      // swipe distance before dismiss (px)
 })
 ```
+
+Top placements mirror bottom ones: toasts drop in from above and the stack peeks downward.
 
 Swipe directions are auto-calculated from placement: toasts swipe toward the edges they sit against (`bottom-end` swipes down or right). Centred toasts swipe vertically toward their edge, or left and right.
 
@@ -100,6 +144,8 @@ The files are split on purpose. `_toast-visuals.scss` owns colors, typography, a
 ---
 
 ## How it works
+
+Toasts of different heights stack cleanly. Collapsed, every toast behind the front one is drawn at the front toast's height with its content hidden, so a long message never sticks out of the stack. Its real height is kept for when the stack expands.
 
 The animations use CSS transitions, not keyframes — so they can be interrupted mid-flight. If a new toast arrives while one is entering, it picks up from wherever it is rather than restarting.
 

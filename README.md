@@ -2,7 +2,7 @@
 
 **Sonner-style toast notifications for Angular**, built on [ng-primitives](https://ng-primitives.mintlify.app/).
 
-Smooth, interruptible animations with stacking, hover expansion, and swipe-to-dismiss.
+Toasts stack, expand on hover, swipe away, and animate with CSS transitions you can interrupt.
 
 Live demo: [kodon.kokkin.is](https://kodon.kokkin.is)
 
@@ -84,7 +84,7 @@ this.toast.dismiss()   // all of them
 
 ### Per-toast options
 
-Every method takes a second argument with `id`, `duration`, `icon` (a template) and `placement`. A number still works as the duration, as before.
+Every method takes a second argument with `id`, `duration`, `icon` (a template) and `placement`. A number on its own is read as the duration.
 
 ---
 
@@ -116,7 +116,9 @@ On phones, bottom toasts sit above the home indicator. For that, your viewport m
 
 The files are split on purpose. `_toast-visuals.scss` owns colors, typography, and variant styles. `toast.component.scss` owns animations, stacking, and layout. You can rework the visuals without touching the animation logic, or replace both entirely.
 
-### Colors — override in your global styles or edit the file directly
+### Colors
+
+Override them in your global styles, or edit the file itself:
 
 ```scss
 :root {
@@ -129,7 +131,9 @@ The files are split on purpose. `_toast-visuals.scss` owns colors, typography, a
 }
 ```
 
-### Animation — adjust in `toast.component.scss`
+### Stacking, layout, and motion
+
+Adjust them in `toast.component.scss`:
 
 ```scss
 :host {
@@ -147,11 +151,11 @@ The files are split on purpose. `_toast-visuals.scss` owns colors, typography, a
 
 Toasts of different heights stack cleanly. Collapsed, every toast behind the front one is drawn at the front toast's height with its content hidden, so a long message never sticks out of the stack. Its real height is kept for when the stack expands.
 
-The animations use CSS transitions, not keyframes — so they can be interrupted mid-flight. If a new toast arrives while one is entering, it picks up from wherever it is rather than restarting.
+The animations use CSS transitions, not keyframes, so they can be interrupted mid-flight. If a new toast arrives while another is still entering, that one carries on from where it is instead of restarting.
 
 A toast that times out slides down and away. One closed with × pops: it swells a little, then shrinks into its centre. With reduced motion, both are a plain fade.
 
-Exit runs via the Web Animations API so the animation can complete before the DOM node is removed. A container-level pointer guard keeps the stack expanded during swipe gestures and exit animations, preventing it from collapsing while toasts are mid-transition.
+Exit runs via the Web Animations API so the animation can complete before the DOM node is removed. A container-level pointer guard keeps the stack expanded during swipe gestures and exit animations.
 
 Inspired by [Sonner](https://sonner.emilkowal.ski/) by Emil Kowalski and the [ng-primitives](https://ng-primitives.mintlify.app/) headless toast implementation.
 

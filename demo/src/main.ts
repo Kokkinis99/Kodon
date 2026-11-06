@@ -1,3 +1,4 @@
+import { provideZoneChangeDetection } from "@angular/core";
 import 'zone.js';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
@@ -5,7 +6,7 @@ import { provideKodonToast } from '../../src/lib/provide-toast';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideKodonToast({
+    provideZoneChangeDetection(),provideKodonToast({
       placement: 'bottom-end',
       duration: 5000,
       maxToasts: 5,

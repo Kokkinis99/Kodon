@@ -74,6 +74,8 @@ this.toast.success('All 12 files synced', { id: 'sync' })
 
 `loading()` toasts stay until you update or dismiss them. So does any toast with `duration: Infinity`.
 
+Toasts pause while the tab is hidden, as well as while the stack is hovered, so none time out unseen.
+
 ### Dismissing
 
 ```typescript

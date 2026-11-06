@@ -52,7 +52,7 @@ import {
 
         <p class="description body">
           A Sonner-inspired toast component built on ng-primitives.
-          Smooth animations, swipe to dismiss, and stackable.
+          Toasts stack, swipe away, and animate with CSS transitions you can interrupt.
         </p>
       </section>
 
@@ -174,7 +174,7 @@ this.toast.error('Something went wrong')</code></pre>
 
           <div class="code-pair">
             <div class="code-pair-item">
-              <p class="body-sm docs-label">Override colors in your global styles — or just edit the file directly:</p>
+              <p class="body-sm docs-label">Override colors in your global styles, or edit the file itself:</p>
               <pre class="code-block"><code>/* globals.scss */
 :root &#123;
   --kodon-toast-success-bg: hsl(142 76% 96%);
@@ -187,7 +187,7 @@ this.toast.error('Something went wrong')</code></pre>
             </div>
 
             <div class="code-pair-item">
-              <p class="body-sm docs-label">Adjust animation feel in <code class="inline-code">toast.component.scss</code>:</p>
+              <p class="body-sm docs-label">Adjust stacking, layout, and motion in <code class="inline-code">toast.component.scss</code>:</p>
               <pre class="code-block"><code>:host &#123;
   /* stacking */
   --kodon-toast-peek: 11px;
@@ -202,8 +202,8 @@ this.toast.error('Something went wrong')</code></pre>
           </div>
 
           <p class="body docs-body">
-            The animations use CSS transitions, not keyframes — so they can be interrupted mid-flight.
-            If a new toast arrives while one is entering, it picks up from wherever it is rather than restarting.
+            The animations use CSS transitions, not keyframes, so they can be interrupted mid-flight.
+            If a new toast arrives while another is still entering, that one carries on from where it is instead of restarting.
             Exit runs via the Web Animations API so it can complete before the DOM node is removed.
           </p>
         </div>

@@ -13,22 +13,21 @@ import { KodonToast } from '../../../src/lib/toast.service';
 import { KodonToastVariant } from '../../../src/lib/toast.component';
 import { KodonToastPlacement } from '../../../src/lib/provide-toast';
 import {
-  LucideAngularModule,
-  CircleCheck,
-  CircleX,
-  TriangleAlert,
-  Info,
-  Layers,
-  GitBranch,
-  FileCode,
-  LoaderCircle,
-  RefreshCw
-} from 'lucide-angular';
+  LucideCircleCheck,
+  LucideCircleX,
+  LucideFileCode,
+  LucideGitBranch,
+  LucideInfo,
+  LucideLayers,
+  LucideLoaderCircle,
+  LucideRefreshCw,
+  LucideTriangleAlert
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideCircleCheck, LucideCircleX, LucideFileCode, LucideGitBranch, LucideInfo, LucideLayers, LucideLoaderCircle, LucideRefreshCw, LucideTriangleAlert],
   template: `
     <main class="container">
       <section class="page-intro">
@@ -42,7 +41,7 @@ import {
               rel="noopener"
               aria-label="View on GitHub"
             >
-              <lucide-icon [img]="GitBranch" [size]="16" [strokeWidth]="2" />
+              <svg lucideGitBranch [size]="16" [strokeWidth]="2" />
             </a>
           </div>
         </header>
@@ -61,31 +60,31 @@ import {
         <div class="playground">
           <div class="demo-section">
             <button class="toast-btn success" (click)="showToast('success')">
-              <lucide-icon [img]="CircleCheck" [size]="16" [strokeWidth]="2.5" />
+              <svg lucideCircleCheck [size]="16" [strokeWidth]="2.5" />
               Success
             </button>
             <button class="toast-btn error" (click)="showToast('error')">
-              <lucide-icon [img]="CircleX" [size]="16" [strokeWidth]="2.5" />
+              <svg lucideCircleX [size]="16" [strokeWidth]="2.5" />
               Error
             </button>
             <button class="toast-btn warning" (click)="showToast('warning')">
-              <lucide-icon [img]="TriangleAlert" [size]="16" [strokeWidth]="2.5" />
+              <svg lucideTriangleAlert [size]="16" [strokeWidth]="2.5" />
               Warning
             </button>
             <button class="toast-btn info" (click)="showToast('info')">
-              <lucide-icon [img]="Info" [size]="16" [strokeWidth]="2.5" />
+              <svg lucideInfo [size]="16" [strokeWidth]="2.5" />
               Info
             </button>
             <button class="stack-btn" (click)="showPromise()">
-              <lucide-icon [img]="LoaderCircle" [size]="16" [strokeWidth]="2" />
+              <svg lucideLoaderCircle [size]="16" [strokeWidth]="2" />
               Promise
             </button>
             <button class="stack-btn" (click)="showUpdate()">
-              <lucide-icon [img]="RefreshCw" [size]="16" [strokeWidth]="2" />
+              <svg lucideRefreshCw [size]="16" [strokeWidth]="2" />
               Update in place
             </button>
             <button class="stack-btn" (click)="showStack()">
-              <lucide-icon [img]="Layers" [size]="16" [strokeWidth]="2" />
+              <svg lucideLayers [size]="16" [strokeWidth]="2" />
               Stack
             </button>
           </div>
@@ -119,30 +118,30 @@ import {
         <div class="setup">
           <div class="setup-step">
             <p class="heading-tt step-label">1. Install peer dependencies</p>
-            <pre class="code-block"><code>npm install ng-primitives lucide-angular</code></pre>
+            <pre class="code-block"><code>npm install ng-primitives @lucide/angular</code></pre>
           </div>
 
           <div class="setup-step">
             <p class="heading-tt step-label">2. Copy these files into your project</p>
             <div class="file-list">
               <a class="file-link" href="https://github.com/Kokkinis99/kodon/blob/main/src/lib/toast.component.ts" target="_blank" rel="noopener">
-                <lucide-icon [img]="FileCode" [size]="13" [strokeWidth]="2" />
+                <svg lucideFileCode [size]="13" [strokeWidth]="2" />
                 toast.component.ts
               </a>
               <a class="file-link" href="https://github.com/Kokkinis99/kodon/blob/main/src/lib/toast.service.ts" target="_blank" rel="noopener">
-                <lucide-icon [img]="FileCode" [size]="13" [strokeWidth]="2" />
+                <svg lucideFileCode [size]="13" [strokeWidth]="2" />
                 toast.service.ts
               </a>
               <a class="file-link" href="https://github.com/Kokkinis99/kodon/blob/main/src/lib/provide-toast.ts" target="_blank" rel="noopener">
-                <lucide-icon [img]="FileCode" [size]="13" [strokeWidth]="2" />
+                <svg lucideFileCode [size]="13" [strokeWidth]="2" />
                 provide-toast.ts
               </a>
               <a class="file-link" href="https://github.com/Kokkinis99/kodon/blob/main/src/lib/toast.component.scss" target="_blank" rel="noopener">
-                <lucide-icon [img]="FileCode" [size]="13" [strokeWidth]="2" />
+                <svg lucideFileCode [size]="13" [strokeWidth]="2" />
                 toast.component.scss
               </a>
               <a class="file-link" href="https://github.com/Kokkinis99/kodon/blob/main/src/lib/_toast-visuals.scss" target="_blank" rel="noopener">
-                <lucide-icon [img]="FileCode" [size]="13" [strokeWidth]="2" />
+                <svg lucideFileCode [size]="13" [strokeWidth]="2" />
                 _toast-visuals.scss
               </a>
             </div>
@@ -323,7 +322,7 @@ this.toast.error('Something went wrong')</code></pre>
       -webkit-font-smoothing: antialiased;
     }
 
-    .toast-btn lucide-icon {
+    .toast-btn svg {
       flex-shrink: 0;
       display: flex;
     }
@@ -649,17 +648,6 @@ this.toast.error('Something went wrong')</code></pre>
 })
 export class AppComponent {
   private readonly toast = inject(KodonToast);
-
-  // Lucide icons
-  protected readonly CircleCheck = CircleCheck;
-  protected readonly CircleX = CircleX;
-  protected readonly TriangleAlert = TriangleAlert;
-  protected readonly Info = Info;
-  protected readonly Layers = Layers;
-  protected readonly GitBranch = GitBranch;
-  protected readonly FileCode = FileCode;
-  protected readonly LoaderCircle = LoaderCircle;
-  protected readonly RefreshCw = RefreshCw;
 
   private readonly messages: Record<Exclude<KodonToastVariant, 'loading'>, string[]> = {
     success: [

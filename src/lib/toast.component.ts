@@ -12,14 +12,13 @@ import {
 import { NgTemplateOutlet } from '@angular/common';
 import { NgpToast, NgpToastManager, injectToastContext } from 'ng-primitives/toast';
 import {
-  LucideAngularModule,
-  CircleX,
-  CircleCheck,
-  TriangleAlert,
-  Info,
-  LoaderCircle,
-  X
-} from 'lucide-angular';
+  LucideCircleCheck,
+  LucideCircleX,
+  LucideInfo,
+  LucideLoaderCircle,
+  LucideTriangleAlert,
+  LucideX
+} from '@lucide/angular';
 
 export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning' | 'loading';
 
@@ -46,7 +45,9 @@ export interface KodonToastContext {
 interface NgpTimer {
   callback: () => void;
   duration: number;
-  remaining: number;
+  remainingMs: number;
+  /** A persistent timer ignores start(). */
+  persistent: boolean;
   start(): void;
   stop(): void;
 }
@@ -54,8 +55,8 @@ interface NgpTimer {
 /** @internal Access shape for ng-primitives' toast internals. */
 interface NgpToastInternal {
   timer: NgpTimer;
-  isInteracting: Signal<boolean>;
-  options: { expanded: Signal<boolean> };
+  /** True while the stack is expanded or the toast is held or swiped. */
+  paused: Signal<boolean>;
 }
 
 /**
@@ -66,7 +67,7 @@ interface NgpToastInternal {
 @Component({
   selector: 'kodon-toast',
   standalone: true,
-  imports: [NgTemplateOutlet, LucideAngularModule],
+  imports: [NgTemplateOutlet, LucideCircleCheck, LucideCircleX, LucideInfo, LucideLoaderCircle, LucideTriangleAlert, LucideX],
   hostDirectives: [NgpToast],
   host: {
     '[attr.data-variant]': 'context.state().variant',
@@ -81,19 +82,19 @@ interface NgpToastInternal {
         <span class="kodon-toast-icon">
           @switch (s.variant) {
             @case ('error') {
-              <lucide-icon [img]="CircleX" [size]="20" [strokeWidth]="2" />
+              <svg lucideCircleX [size]="20" [strokeWidth]="2" />
             }
             @case ('success') {
-              <lucide-icon [img]="CircleCheck" [size]="20" [strokeWidth]="2" />
+              <svg lucideCircleCheck [size]="20" [strokeWidth]="2" />
             }
             @case ('warning') {
-              <lucide-icon [img]="TriangleAlert" [size]="20" [strokeWidth]="2" />
+              <svg lucideTriangleAlert [size]="20" [strokeWidth]="2" />
             }
             @case ('info') {
-              <lucide-icon [img]="Info" [size]="20" [strokeWidth]="2" />
+              <svg lucideInfo [size]="20" [strokeWidth]="2" />
             }
             @case ('loading') {
-              <lucide-icon class="kodon-toast-spinner" [img]="LoaderCircle" [size]="20" [strokeWidth]="2" />
+              <svg lucideLoaderCircle class="kodon-toast-spinner" [size]="20" [strokeWidth]="2" />
             }
           }
         </span>
@@ -108,7 +109,7 @@ interface NgpToastInternal {
         (click)="dismiss('pop')"
         aria-label="Dismiss toast"
       >
-        <lucide-icon [img]="X" [size]="16" [strokeWidth]="2" />
+        <svg lucideX [size]="16" [strokeWidth]="2" />
       </button>
     </div>
   `,
@@ -121,14 +122,6 @@ export class KodonToastComponent implements OnInit, OnDestroy {
   private readonly _elementRef = inject(ElementRef<HTMLElement>);
 
   public readonly context = injectToastContext<KodonToastContext>();
-
-  // Lucide icons
-  protected readonly CircleX = CircleX;
-  protected readonly CircleCheck = CircleCheck;
-  protected readonly TriangleAlert = TriangleAlert;
-  protected readonly Info = Info;
-  protected readonly LoaderCircle = LoaderCircle;
-  protected readonly X = X;
 
   /** Set once the toast has been updated in place, so only swaps animate, not the first render. */
   protected readonly updated = signal(false);
@@ -151,12 +144,6 @@ export class KodonToastComponent implements OnInit, OnDestroy {
       original();
     };
 
-    // ng-primitives restarts the timer whenever the stack collapses. A toast that waits
-    // (a loading toast, or duration: Infinity) must not start counting down.
-    const start = timer.start.bind(timer);
-    timer.start = () => {
-      if (Number.isFinite(this.context.state().duration)) start();
-    };
     this.restartTimer();
 
     this._installContainerGuard();
@@ -178,13 +165,14 @@ export class KodonToastComponent implements OnInit, OnDestroy {
     const timer = this._internal.timer;
     const duration = this.context.state().duration;
     timer.stop();
-    if (!Number.isFinite(duration)) return;
+    // ng-primitives starts the timer again whenever the stack collapses. A toast that
+    // waits (a loading toast, or duration: Infinity) is marked persistent so it doesn't.
+    timer.persistent = !Number.isFinite(duration);
+    if (timer.persistent) return;
     timer.duration = duration;
-    timer.remaining = duration;
+    timer.remainingMs = duration;
     // Hovered or held, the stack stays paused; ng-primitives starts it again on leave.
-    if (!this._internal.options.expanded() && !this._internal.isInteracting()) {
-      timer.start();
-    }
+    if (!this._internal.paused()) timer.start();
   }
 
   private get _internal(): NgpToastInternal {

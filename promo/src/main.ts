@@ -1,4 +1,3 @@
-import 'zone.js';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideKodonToast } from '../../src/lib/provide-toast';
 import { PromoComponent } from './promo.component';

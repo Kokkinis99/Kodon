@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 - 2026-11-06
+
+- Needs Angular 21 or 22 and ng-primitives 0.131 or later, the same versions paraskinio runs.
+- Icons come from `@lucide/angular`, Lucide's maintained Angular package. `lucide-angular` doesn't support Angular 22.
+- Works zoneless. The demo and promo now run without zone.js.
+- Loading toasts and `duration: Infinity` use ng-primitives' persistent timer instead of patching its `start()`.
+
+Breaking: install `@lucide/angular` in place of `lucide-angular`. Kōdon's icons are now `<svg lucideX>` directives, so a selector like `.kodon-toast-icon lucide-icon` needs to target `svg` instead.
+
 ## 0.1.0 - 2026-11-06
 
 - `toast.promise()`: a loading toast that turns into success or error in place when the promise settles.

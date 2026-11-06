@@ -45,7 +45,9 @@ export interface KodonToastContext {
 interface NgpTimer {
   callback: () => void;
   duration: number;
-  remaining: number;
+  remainingMs: number;
+  /** A persistent timer ignores start(). */
+  persistent: boolean;
   start(): void;
   stop(): void;
 }
@@ -53,8 +55,8 @@ interface NgpTimer {
 /** @internal Access shape for ng-primitives' toast internals. */
 interface NgpToastInternal {
   timer: NgpTimer;
-  isInteracting: Signal<boolean>;
-  options: { expanded: Signal<boolean> };
+  /** True while the stack is expanded or the toast is held or swiped. */
+  paused: Signal<boolean>;
 }
 
 /**
@@ -142,12 +144,6 @@ export class KodonToastComponent implements OnInit, OnDestroy {
       original();
     };
 
-    // ng-primitives restarts the timer whenever the stack collapses. A toast that waits
-    // (a loading toast, or duration: Infinity) must not start counting down.
-    const start = timer.start.bind(timer);
-    timer.start = () => {
-      if (Number.isFinite(this.context.state().duration)) start();
-    };
     this.restartTimer();
 
     this._installContainerGuard();
@@ -169,13 +165,14 @@ export class KodonToastComponent implements OnInit, OnDestroy {
     const timer = this._internal.timer;
     const duration = this.context.state().duration;
     timer.stop();
-    if (!Number.isFinite(duration)) return;
+    // ng-primitives starts the timer again whenever the stack collapses. A toast that
+    // waits (a loading toast, or duration: Infinity) is marked persistent so it doesn't.
+    timer.persistent = !Number.isFinite(duration);
+    if (timer.persistent) return;
     timer.duration = duration;
-    timer.remaining = duration;
+    timer.remainingMs = duration;
     // Hovered or held, the stack stays paused; ng-primitives starts it again on leave.
-    if (!this._internal.options.expanded() && !this._internal.isInteracting()) {
-      timer.start();
-    }
+    if (!this._internal.paused()) timer.start();
   }
 
   private get _internal(): NgpToastInternal {

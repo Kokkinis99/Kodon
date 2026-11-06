@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 - 2026-11-06
+
+- Toasts pause while the tab is hidden, so one that would have timed out in the background is still there when you come back, with the time it had left. A toast shown while the tab is hidden waits for you before it starts counting down.
+
 ## 0.2.0 - 2026-11-06
 
 - Needs Angular 21 or 22 and ng-primitives 0.131 or later, the same versions paraskinio runs.

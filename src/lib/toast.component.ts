@@ -9,7 +9,7 @@ import {
   signal,
   TemplateRef
 } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { NgpToast, NgpToastManager, injectToastContext } from 'ng-primitives/toast';
 import {
   LucideCircleCheck,
@@ -49,6 +49,7 @@ interface NgpTimer {
   /** A persistent timer ignores start(). */
   persistent: boolean;
   start(): void;
+  pause(): void;
   stop(): void;
 }
 
@@ -120,6 +121,8 @@ export class KodonToastComponent implements OnInit, OnDestroy {
   private readonly _toastManager = inject(NgpToastManager);
   private readonly _ngpToast = inject(NgpToast);
   private readonly _elementRef = inject(ElementRef<HTMLElement>);
+  private readonly _document = inject(DOCUMENT);
+  private readonly _listeners = new AbortController();
 
   public readonly context = injectToastContext<KodonToastContext>();
 
@@ -144,6 +147,21 @@ export class KodonToastComponent implements OnInit, OnDestroy {
       original();
     };
 
+    // A toast that times out in a background tab is gone before anyone sees it. While the
+    // tab is hidden the timer doesn't run, and a toast shown meanwhile waits for the user.
+    const start = timer.start.bind(timer);
+    timer.start = () => {
+      if (!this._document.hidden) start();
+    };
+    this._document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (this._document.hidden) timer.pause();
+        else if (!this._internal.paused()) timer.start();
+      },
+      { signal: this._listeners.signal }
+    );
+
     this.restartTimer();
 
     this._installContainerGuard();
@@ -151,6 +169,7 @@ export class KodonToastComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this._listeners.abort();
     this.context.register(null);
   }
 

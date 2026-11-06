@@ -12,14 +12,13 @@ import {
 import { NgTemplateOutlet } from '@angular/common';
 import { NgpToast, NgpToastManager, injectToastContext } from 'ng-primitives/toast';
 import {
-  LucideAngularModule,
-  CircleX,
-  CircleCheck,
-  TriangleAlert,
-  Info,
-  LoaderCircle,
-  X
-} from 'lucide-angular';
+  LucideCircleCheck,
+  LucideCircleX,
+  LucideInfo,
+  LucideLoaderCircle,
+  LucideTriangleAlert,
+  LucideX
+} from '@lucide/angular';
 
 export type KodonToastVariant = 'error' | 'success' | 'info' | 'warning' | 'loading';
 
@@ -66,7 +65,7 @@ interface NgpToastInternal {
 @Component({
   selector: 'kodon-toast',
   standalone: true,
-  imports: [NgTemplateOutlet, LucideAngularModule],
+  imports: [NgTemplateOutlet, LucideCircleCheck, LucideCircleX, LucideInfo, LucideLoaderCircle, LucideTriangleAlert, LucideX],
   hostDirectives: [NgpToast],
   host: {
     '[attr.data-variant]': 'context.state().variant',
@@ -81,19 +80,19 @@ interface NgpToastInternal {
         <span class="kodon-toast-icon">
           @switch (s.variant) {
             @case ('error') {
-              <lucide-icon [img]="CircleX" [size]="20" [strokeWidth]="2" />
+              <svg lucideCircleX [size]="20" [strokeWidth]="2" />
             }
             @case ('success') {
-              <lucide-icon [img]="CircleCheck" [size]="20" [strokeWidth]="2" />
+              <svg lucideCircleCheck [size]="20" [strokeWidth]="2" />
             }
             @case ('warning') {
-              <lucide-icon [img]="TriangleAlert" [size]="20" [strokeWidth]="2" />
+              <svg lucideTriangleAlert [size]="20" [strokeWidth]="2" />
             }
             @case ('info') {
-              <lucide-icon [img]="Info" [size]="20" [strokeWidth]="2" />
+              <svg lucideInfo [size]="20" [strokeWidth]="2" />
             }
             @case ('loading') {
-              <lucide-icon class="kodon-toast-spinner" [img]="LoaderCircle" [size]="20" [strokeWidth]="2" />
+              <svg lucideLoaderCircle class="kodon-toast-spinner" [size]="20" [strokeWidth]="2" />
             }
           }
         </span>
@@ -108,7 +107,7 @@ interface NgpToastInternal {
         (click)="dismiss('pop')"
         aria-label="Dismiss toast"
       >
-        <lucide-icon [img]="X" [size]="16" [strokeWidth]="2" />
+        <svg lucideX [size]="16" [strokeWidth]="2" />
       </button>
     </div>
   `,
@@ -121,14 +120,6 @@ export class KodonToastComponent implements OnInit, OnDestroy {
   private readonly _elementRef = inject(ElementRef<HTMLElement>);
 
   public readonly context = injectToastContext<KodonToastContext>();
-
-  // Lucide icons
-  protected readonly CircleX = CircleX;
-  protected readonly CircleCheck = CircleCheck;
-  protected readonly TriangleAlert = TriangleAlert;
-  protected readonly Info = Info;
-  protected readonly LoaderCircle = LoaderCircle;
-  protected readonly X = X;
 
   /** Set once the toast has been updated in place, so only swaps animate, not the first render. */
   protected readonly updated = signal(false);

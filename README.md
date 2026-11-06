@@ -19,7 +19,7 @@ This is a copy-paste library, not an npm package. Copy the files, own the code.
 ### 1. Install peer dependencies
 
 ```bash
-npm install ng-primitives lucide-angular
+npm install ng-primitives @lucide/angular
 ```
 
 ### 2. Copy these files into your project

@@ -2,11 +2,11 @@
 
 **Sonner-style toast notifications for Angular**, built on [ng-primitives](https://ng-primitives.mintlify.app/).
 
-Toasts stack, expand on hover, swipe away, and animate with CSS transitions you can interrupt.
+Toasts stack, expand on hover, swipe away, and animate with CSS transitions you can interrupt. Repeats collapse into one toast with a count, and a toast can follow a promise, an Observable, a `resource()` or a progress signal.
 
 Live demo: [kodon.kokkin.is](https://kodon.kokkin.is)
 
-[![Kōdon promo: stacking, toasts of any height, promise toasts, placements, swipe and pop](promo/kodon-promo.gif)](promo/kodon-promo.mp4)
+[![Kōdon promo: stacking, toasts of any height, grouped repeats, resource and progress toasts, placements, swipe and pop](promo/kodon-promo.gif)](promo/kodon-promo.mp4)
 
 <sub>Click for the full 1080p video.</sub>
 

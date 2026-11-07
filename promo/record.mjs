@@ -78,118 +78,144 @@ const front = sel =>
   }, sel);
 
 // 1. Intro
-await at(150);
+await at(120);
 await run(() => promo.showIntro());
 
 // 2. Toasts that feel right
-await at(1650);
+await at(1250);
 await run(() => { promo.hideIntro(); promo.mark.set(true); });
-await at(1900);
+await at(1400);
 await run(() => promo.caption('Toasts that feel right.', 'Sonner-style, for Angular'));
-await at(2300);
+await at(1700);
 await run(() => promo.toast.success('Changes saved'));
 
 // 3. They stack
-await at(3300);
+await at(2500);
 await run(() => promo.caption('They stack.'));
-await at(3450);
+await at(2600);
 await run(() => promo.toast.error('Network error occurred'));
-await at(3680);
+await at(2780);
 await run(() => promo.toast.warning('Storage almost full'));
-await at(3910);
+await at(2960);
 await run(() => promo.toast.info('New version available'));
 
 // 4. Any length
-await at(4900);
+await at(3750);
 await run(() => {
   promo.toast.dismiss();
   promo.caption('Any length. Still neat.');
   document.documentElement.style.setProperty('--stage-bottom', '16px');
   document.documentElement.style.setProperty('--stage-zoom', '1.15');
 });
-await at(5300);
+await at(4050);
 await run(() => promo.toast.warning('You have unsaved changes in 2 documents. They will be lost if you close this tab'));
-await at(5550);
+await at(4250);
 await run(() => promo.toast.error('We couldn’t reach the server. Your changes are kept on this device until you’re back online'));
-await at(5800);
+await at(4450);
 await run(() => promo.toast.success('Saved'));
-await at(6250);
+await at(4750);
 await run(() => promo.cursor.set(true));
 await jump(700, 300);
 const stack = await front();
-await glide(stack.x + 60, stack.y, 450);
-await at(7700);
-await glide(760, 260, 350);
-await at(8050);
+await glide(stack.x + 60, stack.y, 320);
+await at(5800);
+await glide(760, 260, 260);
+await at(6050);
 await run(() => promo.cursor.set(false));
 
-// 5. Promises
-await at(8250);
+// 5. Spam-proof: the same error six times is one toast that counts
+await at(6200);
 await run(() => {
   promo.toast.dismiss();
-  promo.caption('Promises, in place.', 'toast.promise(upload(), { loading, success, error })');
+  promo.caption('Spam-proof.', 'Repeats collapse into one, with a count');
   document.documentElement.style.removeProperty('--stage-bottom');
   document.documentElement.style.removeProperty('--stage-zoom');
 });
-await at(8650);
-await run(() =>
-  promo.toast.promise(new Promise(r => setTimeout(() => r(3), 1300 * window.SLOW)), {
-    loading: 'Uploading 3 photos…',
-    success: n => `${n} photos uploaded`,
-    error: 'Upload failed'
-  })
-);
-
-// 6. Anywhere
-await at(10800);
-await run(() => { promo.toast.dismiss(); promo.mark.set(false); promo.caption('Anywhere you like.'); });
-const corners = [
-  ['top-start', 'success', 'Profile updated'],
-  ['top-end', 'info', '3 new comments'],
-  ['bottom-start', 'warning', 'Battery at 10%'],
-  ['bottom-end', 'error', 'Payment declined']
-];
-for (const [i, [placement, variant, message]] of corners.entries()) {
-  await at(11150 + i * 240);
-  await page.evaluate(([placement, variant, message]) => promo.toast.show({ placement, variant, message }), [placement, variant, message]);
+for (let i = 0; i < 6; i++) {
+  await at(6500 + i * 170);
+  await run(() => promo.toast.error('Could not reach the server'));
 }
 
-// 7. Swipe it away
-await at(12900);
-await run(() => { promo.toast.dismiss(); promo.mark.set(true); promo.caption('Swipe it away.'); });
-await at(13250);
+// 6. Async: a resource() followed by toast.resource()
+await at(7950);
+await run(() => {
+  promo.toast.dismiss();
+  promo.caption('Async, in place.', 'Promises, Observables and resource()');
+});
+await at(8200);
+await run(() => promo.loadReport());
+
+// 7. Live progress
+await at(9950);
+await run(() => {
+  promo.toast.dismiss();
+  promo.caption('Progress, live.', "toast.loading('Uploading…', { progress })");
+});
+await at(10150);
+await run(() => promo.upload());
+
+// 8. Anywhere: once round the frame, clockwise, then all gone at once
+await at(11850);
+await run(() => {
+  promo.toast.dismiss();
+  promo.mark.set(false);
+  promo.caption('Anywhere you like.');
+});
+await at(12050);
+await run(() => document.documentElement.classList.add('ring'));
+const around = [
+  ['top-start', 'success', 'Profile updated'],
+  ['top-center', 'info', 'Link copied'],
+  ['top-end', 'info', '3 new comments'],
+  ['bottom-end', 'error', 'Payment declined'],
+  ['bottom-center', 'success', 'Order shipped'],
+  ['bottom-start', 'warning', 'Battery at 10%']
+];
+for (const [i, [placement, variant, message]] of around.entries()) {
+  await at(12150 + i * 150);
+  await page.evaluate(([placement, variant, message]) => promo.toast.show({ placement, variant, message }), [placement, variant, message]);
+}
+await at(13500);
+await run(() => promo.toast.dismiss());
+
+// 9. Swipe it away
+await at(13800);
+await run(() => { promo.mark.set(true); promo.caption('Swipe it away.'); });
+await at(13950);
+await run(() => document.documentElement.classList.remove('ring'));
+await at(14050);
 await run(() => promo.toast.info('Draft saved'));
-await at(13600);
+await at(14250);
 await run(() => promo.cursor.set(true));
 await jump(650, 380);
 const swipe = await front();
-await glide(swipe.x - 40, swipe.y, 380);
-await at(14250);
+await glide(swipe.x - 40, swipe.y, 280);
+await at(14700);
 await page.mouse.down();
-await glide(swipe.x + 220, swipe.y + 6, 200);
+await glide(swipe.x + 220, swipe.y + 6, 180);
 await page.mouse.up();
 
-// 8. Or pop it
-await at(14950);
-await run(() => promo.caption('Or pop it.'));
+// 10. Or pop it
 await at(15150);
+await run(() => promo.caption('Or pop it.'));
+await at(15300);
 await run(() => promo.toast.success('Message sent'));
 await at(15550);
 const close = await front('.kodon-toast-close');
-await glide(close.x, close.y, 400);
-await at(16100);
+await glide(close.x, close.y, 300);
+await at(15950);
 await page.mouse.down();
 await new Promise(r => setTimeout(r, 70 * SLOW));
 await page.mouse.up();
-await at(16400);
+await at(16200);
 await run(() => promo.cursor.set(false));
 
-// 9. Outro
-await at(16600);
+// 11. Outro
+await at(16350);
 await run(() => { promo.clearCaption(); promo.mark.set(false); });
-await at(16900);
+await at(16600);
 await run(() => promo.showOutro());
-await at(19900);
+await at(19200);
 
 recording = false;
 await capture;

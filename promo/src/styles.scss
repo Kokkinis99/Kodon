@@ -43,14 +43,3 @@ kodon-toast {
   transition: bottom 600ms var(--ease-out);
 }
 
-// "Anywhere": six toasts round the frame. Narrower and all one size, so the centred ones
-// fit between the corners. Styles from outside the component beat its :host defaults.
-.ring kodon-toast {
-  --kodon-toast-width: 250px;
-}
-.ring [data-ngp-toast-container$='center'] {
-  zoom: 1;
-}
-.ring [data-ngp-toast-container='bottom-center'] {
-  bottom: 24px !important;
-}

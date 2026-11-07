@@ -62,6 +62,53 @@ this.toast.promise(this.api.upload(photos), {
 
 It returns `{ id, dismiss, unwrap }`; `unwrap()` gives you the original promise's result. If someone closes the toast while it's loading, it stays closed.
 
+An Observable works the same way, so you can pass an `HttpClient` call straight in. Kōdon subscribes and settles on the last value. Don't subscribe again yourself, or the request goes out twice; use `unwrap()` for the result.
+
+```typescript
+this.toast.promise(this.http.post<Post>('/api/posts', draft), {
+  loading: 'Publishing…',
+  success: post => `Published “${post.title}”`,
+  error: 'Could not publish'
+})
+```
+
+### Resources
+
+`toast.resource()` follows a `resource()` or `httpResource()`: a loading toast while it loads, then success or error, and again on every reload. Every message is optional, so you can ask to hear only about failures:
+
+```typescript
+readonly profile = httpResource<Profile>(() => `/api/users/${this.id()}`)
+
+constructor() {
+  inject(KodonToast).resource(this.profile, { error: 'Could not load the profile' })
+}
+```
+
+Call it in a constructor or field initializer and it stops along with the component. Anywhere else, pass `{ injector }` or call the `stop()` it returns. An `httpResource` made with `reportProgress: true` shows a progress bar while it loads.
+
+### Progress
+
+Pass a signal from 0 to 1 and the toast draws a bar along its bottom edge that follows it.
+
+```typescript
+const progress = signal(0)
+this.toast.loading('Uploading report.pdf…', { id: 'upload', progress })
+// progress.set(0.4) … then:
+this.toast.success('report.pdf uploaded', { id: 'upload' })
+```
+
+### Repeats
+
+Identical toasts (same message, same variant) collapse into one with a count, so a retry loop shows `×5` instead of five copies. Each repeat starts the countdown over and gives the toast a small bump.
+
+To group toasts whose text differs, give them the same `group`. The newest message replaces the old one and the count goes up:
+
+```typescript
+this.toast.error(`Could not save ${file.name}`, { group: 'save-errors' })
+```
+
+Pass `group: false` to always stack a toast, or `groupDuplicates: false` to `provideKodonToast` to turn the automatic grouping off.
+
 ### Updating a toast
 
 Show a toast with an id that's already on screen and that toast changes in place instead of stacking a new one. Its countdown starts over.
@@ -86,7 +133,7 @@ this.toast.dismiss()   // all of them
 
 ### Per-toast options
 
-Every method takes a second argument with `id`, `duration`, `icon` (a template) and `placement`. A number on its own is read as the duration.
+Every method takes a second argument with `id`, `duration`, `icon` (a template), `placement`, `group` and `progress`. A number on its own is read as the duration.
 
 ---
 
@@ -98,7 +145,8 @@ provideKodonToast({
   duration: 5000,          // auto-dismiss time in ms
   maxToasts: 3,            // max visible at once
   gap: 14,                 // gap between expanded toasts (px)
-  swipeThreshold: 100      // swipe distance before dismiss (px)
+  swipeThreshold: 100,     // swipe distance before dismiss (px)
+  groupDuplicates: true    // collapse identical toasts into one with a count
 })
 ```
 

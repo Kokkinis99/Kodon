@@ -32,6 +32,10 @@ export interface KodonToastState {
   icon?: TemplateRef<unknown>;
   /** Milliseconds before it closes itself. Infinity keeps it until dismissed or updated. */
   duration: number;
+  /** How many toasts this one stands for after grouping. 1 shows no count. */
+  count: number;
+  /** Progress from 0 to 1 for the bar along the bottom; undefined hides it. */
+  progress?: Signal<number | undefined>;
 }
 
 export interface KodonToastContext {
@@ -104,6 +108,12 @@ interface NgpToastInternal {
       @for (message of [s.message]; track message) {
         <span class="kodon-toast-message">{{ message }}</span>
       }
+      @if (s.count > 1) {
+        <!-- Keyed on the count, so each new one pops in. -->
+        @for (count of [s.count]; track count) {
+          <span class="kodon-toast-count" [attr.aria-label]="count + ' times'">×{{ count }}</span>
+        }
+      }
       <button
         type="button"
         class="kodon-toast-close"
@@ -112,6 +122,17 @@ interface NgpToastInternal {
       >
         <svg lucideX [size]="16" [strokeWidth]="2" />
       </button>
+      @let progress = s.progress?.();
+      @if (progress !== undefined) {
+        <span
+          class="kodon-toast-progress"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="percent(progress)"
+          [style.--kodon-progress]="clamp(progress)"
+        ></span>
+      }
     </div>
   `,
   styleUrl: './toast.component.scss',
@@ -129,6 +150,21 @@ export class KodonToastComponent implements OnInit, OnDestroy {
   /** Set once the toast has been updated in place, so only swaps animate, not the first render. */
   protected readonly updated = signal(false);
 
+  private _exiting = false;
+
+  /** @internal True once the toast has started to leave, by timing out, ×, or a swipe. */
+  public get exiting(): boolean {
+    return this._exiting || this._elementRef.nativeElement.hasAttribute('data-exit');
+  }
+
+  protected clamp(progress: number): number {
+    return Math.min(1, Math.max(0, progress));
+  }
+
+  protected percent(progress: number): number {
+    return Math.round(this.clamp(progress) * 100);
+  }
+
   /** Cached reference to the ng-primitives container element. */
   private _container: HTMLElement | null = null;
 
@@ -143,6 +179,7 @@ export class KodonToastComponent implements OnInit, OnDestroy {
     const timer = this._internal.timer;
     const original = timer.callback;
     timer.callback = () => {
+      this._exiting = true;
       this._startExitAnimation();
       original();
     };
@@ -173,10 +210,24 @@ export class KodonToastComponent implements OnInit, OnDestroy {
     this.context.register(null);
   }
 
-  /** @internal Called by KodonToast after it replaces the state. */
-  public onUpdated(): void {
+  /**
+   * @internal Called by KodonToast after it replaces the state. A grouped toast gives a
+   * small bump so a repeat doesn't go unnoticed.
+   */
+  public onUpdated(grouped = false): void {
     this.updated.set(true);
     this.restartTimer();
+    if (grouped) this._bump();
+  }
+
+  private _bump(): void {
+    const el = this._elementRef.nativeElement;
+    if (el.dataset['visible'] === 'false' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // The scale property, so it composes with the stack's transforms instead of replacing them.
+    el.animate([{ scale: '1' }, { scale: '1.03', offset: 0.35 }, { scale: '1' }], {
+      duration: 260,
+      easing: 'cubic-bezier(0.165, 0.84, 0.44, 1)'
+    });
   }
 
   /** Starts the countdown over from the current state's duration. */
@@ -203,6 +254,7 @@ export class KodonToastComponent implements OnInit, OnDestroy {
    * Pass 'pop' to get the same exit from your own close control.
    */
   public dismiss(exit: KodonToastExit = 'slide'): void {
+    this._exiting = true;
     this._startExitAnimation(exit);
     this._toastManager.dismiss(this._ngpToast);
   }

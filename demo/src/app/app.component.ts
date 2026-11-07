@@ -6,6 +6,7 @@ import {
   computed,
   effect,
   inject,
+  resource,
   signal,
   viewChild
 } from '@angular/core';
@@ -15,19 +16,22 @@ import { KodonToastPlacement } from '../../../src/lib/provide-toast';
 import {
   LucideCircleCheck,
   LucideCircleX,
+  LucideDatabase,
   LucideFileCode,
   LucideGitBranch,
   LucideInfo,
   LucideLayers,
   LucideLoaderCircle,
   LucideRefreshCw,
-  LucideTriangleAlert
+  LucideRepeat,
+  LucideTriangleAlert,
+  LucideUpload
 } from '@lucide/angular';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [LucideCircleCheck, LucideCircleX, LucideFileCode, LucideGitBranch, LucideInfo, LucideLayers, LucideLoaderCircle, LucideRefreshCw, LucideTriangleAlert],
+  imports: [LucideCircleCheck, LucideCircleX, LucideDatabase, LucideFileCode, LucideGitBranch, LucideInfo, LucideLayers, LucideLoaderCircle, LucideRefreshCw, LucideRepeat, LucideTriangleAlert, LucideUpload],
   template: `
     <main class="container">
       <section class="page-intro">
@@ -82,6 +86,18 @@ import {
             <button class="stack-btn" (click)="showUpdate()">
               <svg lucideRefreshCw [size]="16" [strokeWidth]="2" />
               Update in place
+            </button>
+            <button class="stack-btn" (click)="showRepeat()">
+              <svg lucideRepeat [size]="16" [strokeWidth]="2" />
+              Repeat
+            </button>
+            <button class="stack-btn" (click)="showProgress()">
+              <svg lucideUpload [size]="16" [strokeWidth]="2" />
+              Progress
+            </button>
+            <button class="stack-btn" (click)="reloadReport()">
+              <svg lucideDatabase [size]="16" [strokeWidth]="2" />
+              Resource
             </button>
             <button class="stack-btn" (click)="showStack()">
               <svg lucideLayers [size]="16" [strokeWidth]="2" />
@@ -768,6 +784,66 @@ export class AppComponent {
     this.toast.show({ id: 'sync', variant, message, placement: this.placement() });
     this.lastCall.set(`// same id: the toast on screen changes, nothing stacks
 this.toast.show({ id: 'sync', variant: '${variant}', message: '${message}' })`);
+  }
+
+  showRepeat(): void {
+    // The same error three times, as a retry loop would: one toast that counts.
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => this.toast.error('Could not reach the server', { placement: this.placement() }), i * 450);
+    }
+    this.lastCall.set(`// identical toasts collapse into one with a count
+this.toast.error('Could not reach the server') // ×3`);
+  }
+
+  private uploads = 0;
+
+  showProgress(): void {
+    const progress = signal(0);
+    const id = `upload-${++this.uploads}`;
+    this.toast.loading('Uploading report.pdf…', { id, progress, placement: this.placement() });
+    const tick = setInterval(() => {
+      progress.update(p => Math.min(1, p + 0.08 + Math.random() * 0.12));
+      if (progress() < 1) return;
+      clearInterval(tick);
+      setTimeout(() => this.toast.success('report.pdf uploaded', { id, placement: this.placement() }), 250);
+    }, 220);
+    this.lastCall.set(`// a bar that follows a signal from 0 to 1
+progress = signal(0)
+this.toast.loading('Uploading report.pdf…', { progress })`);
+  }
+
+  /** A stand-in for an httpResource: every reload takes a moment, and one in three fails. */
+  private readonly reportVersion = signal(0);
+  private readonly report = resource({
+    params: () => this.reportVersion() || undefined,
+    loader: ({ params }) =>
+      new Promise<number>((resolve, reject) =>
+        setTimeout(() => (Math.random() < 0.3 ? reject(new Error('timeout')) : resolve(params * 7 + 41)), 1400)
+      )
+  });
+  private reportToast?: { stop(): void };
+
+  reloadReport(): void {
+    this.reportVersion.update(v => v + 1);
+    // Followed afresh on each click only so the toast uses the placement picked above.
+    this.reportToast?.stop();
+    this.reportToast = this.toast.resource(
+      this.report,
+      {
+        loading: 'Loading the report…',
+        success: rows => `Report ready: ${rows} rows`,
+        error: 'The report timed out. Try again.'
+      },
+      { id: 'report', placement: this.placement(), injector: this.injector }
+    );
+    this.lastCall.set(`report = httpResource(() => '/api/report')
+
+// follows it: loading, then ready or failed, on every reload
+this.toast.resource(this.report, {
+  loading: 'Loading the report…',
+  success: rows => \`Report ready: \${rows} rows\`,
+  error: 'The report timed out. Try again.'
+})`);
   }
 
   showStack(): void {

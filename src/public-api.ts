@@ -17,7 +17,8 @@ export {
   KodonToastOptions,
   KodonToastExtras,
   KodonToastHandle,
-  KodonToastPromiseMessages
+  KodonToastPromiseMessages,
+  KodonToastResourceMessages
 } from './lib/toast.service';
 
 // Provider

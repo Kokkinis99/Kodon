@@ -791,8 +791,11 @@ this.toast.show({ id: 'sync', variant: '${variant}', message: '${message}' })`);
     for (let i = 0; i < 3; i++) {
       setTimeout(() => this.toast.error('Could not reach the server', { placement: this.placement() }), i * 450);
     }
-    this.lastCall.set(`// identical toasts collapse into one with a count
-this.toast.error('Could not reach the server') // ×3`);
+    this.lastCall.set(`// identical toasts collapse on their own: one toast, ×3
+this.toast.error('Could not reach the server')
+
+// different text? give them the same group
+this.toast.error(\`Could not save \${file.name}\`, { group: 'save' })`);
   }
 
   private uploads = 0;

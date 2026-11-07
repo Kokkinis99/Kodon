@@ -76,7 +76,8 @@ interface NgpToastInternal {
   hostDirectives: [NgpToast],
   host: {
     '[attr.data-variant]': 'context.state().variant',
-    '[attr.data-updated]': 'updated() || null'
+    '[attr.data-updated]': 'updated() || null',
+    '[attr.data-progress]': 'context.state().progress?.() !== undefined || null'
   },
   template: `
     @let s = context.state();

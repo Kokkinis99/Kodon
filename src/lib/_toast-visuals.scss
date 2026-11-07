@@ -265,11 +265,16 @@
 }
 
 // Progress (an upload, a download): a thin bar along the bottom that follows the signal.
+// The toast grows a little at the bottom to make room for it.
+:host[data-progress] .kodon-toast-content {
+  padding-bottom: 27px;
+}
+
 .kodon-toast-progress {
   position: absolute;
   left: 16px;
   right: 16px;
-  bottom: 6px;
+  bottom: 14px;
   height: 3px;
   border-radius: 999px;
   background-color: color-mix(in srgb, currentColor 12%, transparent);

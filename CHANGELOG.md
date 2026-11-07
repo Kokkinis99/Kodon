@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 - 2026-11-07
+
+- Identical toasts collapse into one with a count (`×3`) instead of stacking copies. Each repeat starts the countdown over and bumps the toast. Give toasts the same `group` to collapse ones with different text, pass `group: false` to opt one out, or turn it off with `groupDuplicates: false`.
+- `toast.promise()` takes an Observable, such as an `HttpClient` call, as well as a promise.
+- `toast.resource()` follows a `resource()` or `httpResource()` through loading, success and error, on every reload. Each message is optional.
+- A `progress` option takes a signal from 0 to 1 and draws a bar along the bottom of the toast. `httpResource` progress shows up on its own with `reportProgress: true`.
+- Updating a toast while it's leaving shows a new one instead of changing the one on its way out.
+
+Changed: identical toasts now group by default. Pass `groupDuplicates: false` to `provideKodonToast` to keep them stacking.
+
 ## 0.3.0 - 2026-11-06
 
 - Toasts pause while the tab is hidden, so one that would have timed out in the background is still there when you come back, with the time it had left. A toast shown while the tab is hidden waits for you before it starts counting down.

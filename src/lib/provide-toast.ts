@@ -29,10 +29,13 @@ export function getSwipeDirections(placement: KodonToastPlacement): KodonSwipeDi
 }
 
 /** @internal The resolved defaults, for KodonToast to read. */
-export const KODON_TOAST_DEFAULTS = new InjectionToken<{ duration: number; placement: KodonToastPlacement }>(
-  'KODON_TOAST_DEFAULTS',
-  { factory: () => ({ duration: 5000, placement: 'bottom-end' }) }
-);
+export const KODON_TOAST_DEFAULTS = new InjectionToken<{
+  duration: number;
+  placement: KodonToastPlacement;
+  groupDuplicates: boolean;
+}>('KODON_TOAST_DEFAULTS', {
+  factory: () => ({ duration: 5000, placement: 'bottom-end', groupDuplicates: true })
+});
 
 export interface KodonToastConfig {
   /**
@@ -66,6 +69,13 @@ export interface KodonToastConfig {
    * @default 100
    */
   swipeThreshold?: number;
+
+  /**
+   * Collapse identical toasts (same message and variant) into one with a count,
+   * instead of stacking copies. Toasts with a `group` collapse either way.
+   * @default true
+   */
+  groupDuplicates?: boolean;
 }
 
 /**
@@ -88,7 +98,10 @@ export function provideKodonToast(config: KodonToastConfig = {}): Provider[] {
   const duration = config.duration ?? 5000;
 
   return [
-    { provide: KODON_TOAST_DEFAULTS, useValue: { duration, placement } },
+    {
+      provide: KODON_TOAST_DEFAULTS,
+      useValue: { duration, placement, groupDuplicates: config.groupDuplicates ?? true }
+    },
     provideToastConfig({
       placement,
       duration,

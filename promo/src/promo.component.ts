@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, resource, signal } from '@angular/core';
 import { KodonToast } from '../../src/lib/toast.service';
 
 /** The recorder slows animations down to capture every frame; timers here follow suit. */
@@ -36,7 +36,7 @@ interface Caption {
         </div>
       }
 
-      <div class="captions">
+      <div class="captions" [class.nudged]="nudged()">
         @for (c of captions(); track c.id) {
           <div class="caption" [class.leaving]="c.leaving">
             <p class="caption-main">
@@ -144,6 +144,13 @@ interface Caption {
       inset: 0 0 auto;
       height: 310px;
       display: grid;
+    }
+    /* Shoved aside when a toast lands on the caption. */
+    .captions {
+      transition: translate 500ms var(--spring);
+    }
+    .captions.nudged {
+      translate: 0 46px;
     }
     .caption {
       grid-area: 1 / 1;
@@ -262,10 +269,22 @@ export class PromoComponent {
   readonly outro = signal(false);
   readonly mark = signal(false);
   readonly cursor = signal(false);
+  readonly nudged = signal(false);
   readonly captions = signal<Caption[]>([]);
   private nextId = 0;
 
+  /** A report that takes a moment to load, followed by toast.resource(). */
+  private readonly reportVersion = signal(0);
+  private readonly report = resource({
+    params: () => this.reportVersion() || undefined,
+    loader: () => new Promise<number>(r => setTimeout(() => r(1284), 1100 * slow()))
+  });
+
   constructor() {
+    this.toast.resource(this.report, {
+      loading: 'Loading the report…',
+      success: rows => `Report ready: ${rows.toLocaleString('en')} rows`
+    });
     document.addEventListener('pointermove', e => {
       const style = document.documentElement.style;
       style.setProperty('--x', `${e.clientX - 3}px`);
@@ -281,6 +300,19 @@ export class PromoComponent {
   hideIntro(): void {
     this.introLeaving.set(true);
     setTimeout(() => this.intro.set(false), 500 * slow());
+  }
+
+  loadReport(): void {
+    this.reportVersion.update(v => v + 1);
+  }
+
+  /** An upload whose progress signal fills in a few uneven steps, then succeeds. */
+  upload(): void {
+    const progress = signal(0);
+    this.toast.loading('Uploading launch-video.mp4…', { id: 'upload', progress });
+    const steps = [0.18, 0.41, 0.55, 0.83, 1];
+    steps.forEach((p, i) => setTimeout(() => progress.set(p), (i + 1) * 280 * slow()));
+    setTimeout(() => this.toast.success('launch-video.mp4 uploaded', { id: 'upload' }), (steps.length * 280 + 300) * slow());
   }
 
   caption(text: string, sub?: string): void {
